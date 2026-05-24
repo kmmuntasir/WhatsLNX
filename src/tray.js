@@ -6,8 +6,22 @@ let tray = null;
 let unreadCount = 0;
 let baseIcon = null;
 
-const TRAY_SIZE = 22;
-const BADGE_RADIUS = 4;
+const TRAY_SIZE = 24;
+
+// --- 7x9 bold pixel font for digits 0-9 and '+' ---
+const GLYPHS = {
+  '0': ['0111110', '1100011', '1100011', '1100011', '1100011', '1100011', '1100011', '1100011', '0111110'],
+  '1': ['0011100', '0111100', '0001100', '0001100', '0001100', '0001100', '0001100', '0001100', '0111110'],
+  '2': ['0111110', '1100011', '0000011', '0000110', '0001100', '0011000', '0110000', '1100000', '1111111'],
+  '3': ['0111110', '1100011', '0000011', '0000011', '0011110', '0000011', '0000011', '1100011', '0111110'],
+  '4': ['0000110', '0001110', '0011110', '0110110', '1100110', '1111111', '0000110', '0000110', '0000110'],
+  '5': ['1111111', '1100000', '1100000', '1111110', '0000011', '0000011', '0000011', '1100011', '0111110'],
+  '6': ['0011110', '0110000', '1100000', '1100000', '1111110', '1100011', '1100011', '1100011', '0111110'],
+  '7': ['1111111', '0000011', '0000110', '0001100', '0011000', '0011000', '0110000', '0110000', '0110000'],
+  '8': ['0111110', '1100011', '1100011', '1100011', '0111110', '1100011', '1100011', '1100011', '0111110'],
+  '9': ['0111110', '1100011', '1100011', '1100011', '0111111', '0000011', '0000011', '0000110', '0011100'],
+  '+': ['0000000', '0001100', '0001100', '0001100', '1111111', '1111111', '0001100', '0001100', '0000000'],
+};
 
 // --- CRC32 for PNG chunks ---
 const CRC_TABLE = (() => {
@@ -62,7 +76,7 @@ function rgbaToPNG(rgba, width, height) {
   return Buffer.concat([sig, chunk('IHDR', ihdr), chunk('IDAT', compressed), chunk('IEND', Buffer.alloc(0))]);
 }
 
-// --- Draw red badge on icon ---
+// --- Draw badge with count number on icon ---
 function createBadgedIcon(icon, count) {
   if (!icon || count <= 0) return icon;
 
@@ -79,28 +93,61 @@ function createBadgedIcon(icon, count) {
     rgba[i + 3] = bgra[i + 3]; // A
   }
 
-  // Draw red circle badge in bottom-right corner
-  const cx = size - BADGE_RADIUS - 1;
-  const cy = size - BADGE_RADIUS - 1;
+  // Build label: "1"-"9" or "9+"
+  const label = count > 9 ? '9+' : String(count);
 
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const idx = (y * size + x) * 4;
+  // Measure label width
+  const glyphH = 9;
+  let glyphW = 0;
+  for (let i = 0; i < label.length; i++) {
+    glyphW += GLYPHS[label[i]][0].length;
+    if (i < label.length - 1) glyphW += 1;
+  }
 
-      if (dist <= BADGE_RADIUS) {
-        // Anti-aliased edge
-        const alpha = dist > BADGE_RADIUS - 0.8
-          ? Math.round(255 * (BADGE_RADIUS - dist) / 0.8)
-          : 255;
-        rgba[idx]     = 230;
-        rgba[idx + 1] = 30;
-        rgba[idx + 2] = 30;
-        rgba[idx + 3] = Math.max(0, Math.min(255, alpha));
+  // Position: bottom-right, 1px margin
+  const startX = size - glyphW - 1;
+  const startY = size - glyphH - 1;
+
+  // Collect all glyph pixel positions
+  const pixels = [];
+  let offsetX = 0;
+  for (let ci = 0; ci < label.length; ci++) {
+    const glyph = GLYPHS[label[ci]];
+    const gw = glyph[0].length;
+    for (let gy = 0; gy < glyphH; gy++) {
+      for (let gx = 0; gx < gw; gx++) {
+        if (glyph[gy][gx] === '1') {
+          pixels.push({ x: startX + offsetX + gx, y: startY + gy });
+        }
       }
     }
+    offsetX += gw + 1;
+  }
+
+  // Draw dark outline (1px in all 8 directions) then white fill
+  function setPixel(x, y, r, g, b, a) {
+    if (x >= 0 && x < size && y >= 0 && y < size) {
+      const idx = (y * size + x) * 4;
+      rgba[idx]     = r;
+      rgba[idx + 1] = g;
+      rgba[idx + 2] = b;
+      rgba[idx + 3] = a;
+    }
+  }
+
+  // Outline pass (dark)
+  for (const p of pixels) {
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (dx !== 0 || dy !== 0) {
+          setPixel(p.x + dx, p.y + dy, 255, 255, 255, 230);
+        }
+      }
+    }
+  }
+  // Fill pass (black)
+  for (const p of pixels) {
+    setPixel(p.x, p.y, 0, 0, 0, 255);
   }
 
   const png = rgbaToPNG(rgba, size, size);
