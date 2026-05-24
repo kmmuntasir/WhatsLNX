@@ -11,6 +11,7 @@ WhatsLNX wraps [WhatsApp Web](https://web.whatsapp.com) inside a tailored Electr
 - **Native Notifications** — System notification bubbles via DBus
 - **Native File Dialogs** — xdg-desktop-portal for uploads and downloads
 - **Drag & Drop** — Drop files from Nautilus, Dolphin, or Thunar directly into chat
+- **Screen Sharing** — Share your screen during calls (Wayland + X11, via PipeWire/xdg-desktop-portal)
 - **Theme Sync** — Automatically follows your desktop's light/dark mode
 - **Font Configuration** — Set Serif, Sans-Serif, and Monospace fonts via Settings
 - **System Tray** — Tray icon with unread message count badge
@@ -140,6 +141,25 @@ whatsapp://send?text=Hello
 ```
 
 Clicking these links in any application will open WhatsLNX and navigate to the compose view.
+
+## Competitive Comparison
+
+| Feature | **WhatsLNX** | **WhatsDesk** | **Whatsie** | **WhatsApp for Linux** | **WhatsApp Web** |
+|---------|:---:|:---:|:---:|:---:|:---:|
+| Wayland support | Auto | Manual | Partial | Unknown | Browser-dependent |
+| Audio/Video calling | Auto-permission | Broken in Snap | Yes | Unknown | Yes |
+| Screen sharing | Yes | No | No | No | Yes |
+| Native file dialogs | xdg-desktop-portal | Custom | Custom | Custom | Browser-dependent |
+| Theme sync with OS | Auto | Manual | Manual | Manual | Via browser |
+| System tray icon | Yes | Yes | Yes | Yes | No |
+| Native notifications | Yes | Yes | Yes | Yes | Browser-dependent |
+| Unread badge | Yes | No | Yes | No | Tab title only |
+| Drag-and-drop files | Yes | Unknown | Unknown | Unknown | Yes |
+| Font configuration | Yes (3 families) | No | No | No | No |
+| Deep link support | `whatsapp://` | No | No | No | N/A |
+| Session persistence | Yes | Yes | Yes | Yes | Browser-dependent |
+| Auto-update | Yes | No | No | No | N/A |
+| Package formats | AppImage, Snap, DEB, Flatpak | AppImage, DEB, Snap | Snap, AppImage, DEB | DEB, Flatpak | N/A |
 
 ## Supported Platforms
 
