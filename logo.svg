@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!-- WhatsApp Green Gradient -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#25D366"/>
+      <stop offset="100%" stop-color="#128C7E"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Chat Bubble Path -->
+  <path d="M60,10 C32.4,10 10,31.5 10,58 C10,69.5 14.3,80 21.5,88.2 L13,107 L33.5,101.5 C41.4,104.5 50.4,106 60,106 C87.6,106 110,84.5 110,58 C110,31.5 87.6,10 60,10 Z" fill="url(#bg)"/>
+
+  <!-- Terminal Prompt >_ -->
+  <text x="34" y="68" font-family="monospace, Courier, sans-serif" font-size="34" font-weight="900" fill="#ffffff">&gt;_</text>
+</svg>
