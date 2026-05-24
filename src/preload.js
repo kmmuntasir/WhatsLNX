@@ -88,9 +88,13 @@ contextBridge.exposeInMainWorld('whatslnx', {
   },
 });
 
-// --- Hide Electron fingerprints ---
-// contextIsolation + sandbox already prevent most detection.
-// UA spoofing is handled via session webRequest in main process.
+// --- Auto-apply fonts from main process IPC ---
+window.whatslnx.on('apply-fonts', (fonts) => {
+  window.whatslnx.applyFonts(fonts);
+});
+window.whatslnx.on('reset-fonts', () => {
+  window.whatslnx.resetFonts();
+});
 
 // --- Auto-report unread count ---
 window.addEventListener('DOMContentLoaded', () => {

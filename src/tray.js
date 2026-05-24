@@ -202,6 +202,10 @@ function updateContextMenu(mainWindow, store) {
       label: 'Settings...',
       click: () => { createSettingsWindow(mainWindow, store); },
     },
+    {
+      label: 'Reload',
+      click: () => { mainWindow.webContents.reloadIgnoringCache(); },
+    },
     { type: 'separator' },
     {
       label: 'Theme',
