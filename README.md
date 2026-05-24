@@ -55,11 +55,24 @@ sudo dpkg -i whatslnx_*.amd64.deb
 sudo apt-get install -f  # Fix missing dependencies
 ```
 
+### Flatpak
+
+```bash
+# Download the latest Flatpak bundle
+wget https://github.com/kmmuntasir/WhatsLNX/releases/latest/download/WhatsLNX-*.flatpak
+
+# Install
+flatpak install --user WhatsLNX-*.flatpak
+
+# Run
+flatpak run io.github.kmmuntasir.WhatsLNX
+```
+
 ## Building from Source
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 24+ and npm
 - Linux (Ubuntu 24.04+ recommended)
 
 ### Build
@@ -69,7 +82,7 @@ git clone https://github.com/kmmuntasir/WhatsLNX.git
 cd WhatsLNX
 npm install
 npm start        # Run in development mode
-npm run build    # Build all packages (AppImage + Snap + DEB)
+npm run build    # Build all packages (AppImage + Snap + DEB + Flatpak)
 ```
 
 ### Individual targets
@@ -78,6 +91,7 @@ npm run build    # Build all packages (AppImage + Snap + DEB)
 npm run build:appimage
 npm run build:snap
 npm run build:deb
+npm run build:flatpak
 ```
 
 Build artifacts go to `dist/`.

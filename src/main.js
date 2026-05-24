@@ -8,7 +8,7 @@ const { app, BrowserWindow, session, shell, nativeTheme, dialog, ipcMain, deskto
 const path = require('path');
 const { createTray } = require('./tray');
 const { showNativeNotification } = require('./notifications');
-const { createSettingsWindow } = require('./settings');
+
 const { initUpdater } = require('./updater');
 
 const WHATSAPP_URL = 'https://web.whatsapp.com';
