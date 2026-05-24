@@ -2,6 +2,8 @@ appId: com.whatslnx.app
 productName: WhatsLNX
 copyright: Copyright © 2026 Muntasir Billah Munna
 
+afterPack: scripts/afterPack.js
+
 directories:
   output: dist
 
