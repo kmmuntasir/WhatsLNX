@@ -22,6 +22,9 @@ linux:
     - target: snap
       arch:
         - x64
+    - target: flatpak
+      arch:
+        - x64
   desktop:
     entry:
       Name: WhatsLNX
@@ -70,6 +73,31 @@ deb:
 
 appImage:
   license: LICENSE
+
+flatpak:
+  runtime: org.freedesktop.Platform
+  runtimeVersion: "24.08"
+  sdk: org.freedesktop.Sdk
+  base: org.electronjs.Electron2.BaseApp
+  baseVersion: "24.08"
+  branch: stable
+  useWaylandFlags: true
+  license: LICENSE
+  finishArgs:
+    - --socket=x11
+    - --socket=wayland
+    - --share=ipc
+    - --share=network
+    - --device=dri
+    - --socket=pulseaudio
+    - --device=all
+    - --filesystem=home
+    - --talk-name=org.freedesktop.Notifications
+    - --talk-name=org.kde.StatusNotifierWatcher
+    - --talk-name=org.freedesktop.portal.Desktop
+    - --talk-name=org.freedesktop.portal.FileChooser
+    - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
+    - --env=ELECTRON_TRASH=gio
 
 publish:
   provider: github

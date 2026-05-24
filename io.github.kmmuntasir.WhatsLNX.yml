@@ -1,0 +1,77 @@
+id: io.github.kmmuntasir.WhatsLNX
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: '24.08'
+
+command: whatslnx
+rename-desktop-file: whatslnx.desktop
+rename-icon: whatslnx
+
+finish-args:
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --share=ipc
+  - --share=network
+  - --device=dri
+  - --socket=pulseaudio
+  - --device=all
+  - --filesystem=home
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
+  - --env=ELECTRON_TRASH=gio
+
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.node22
+
+build-options:
+  append-path: /usr/lib/sdk/node22/bin
+  env:
+    NPM_CONFIG_LOGLEVEL: info
+
+modules:
+  - name: whatslnx
+    buildsystem: simple
+    build-options:
+      env:
+        XDG_CACHE_HOME: /run/build/whatslnx/flatpak-node/cache
+        npm_config_cache: /run/build/whatslnx/flatpak-node/npm-cache
+        npm_config_nodedir: /usr/lib/sdk/node22
+        npm_config_offline: 'true'
+    subdir: main
+    sources:
+      - type: archive
+        url: https://github.com/kmmuntasir/WhatsLNX/archive/refs/tags/v0.1.0.tar.gz
+        sha256: UPDATE_ON_RELEASE
+        dest: main
+      - generated-sources.json
+      - type: script
+        dest-filename: whatslnx
+        commands:
+          - zypak-wrapper /app/main/whatslnx "$@"
+    build-commands:
+      - npm install --offline
+      - |
+        . ../flatpak-node/electron-builder-arch-args.sh
+        npx electron-builder --linux --dir $ELECTRON_BUILDER_ARCH_ARGS
+      - |
+        unpacked=$(ls -d dist/linux*unpacked | head -1)
+        if [ -f "$unpacked/whatslnx.real" ]; then
+          mv "$unpacked/whatslnx.real" "$unpacked/whatslnx"
+        fi
+        cp -a "$unpacked" /app/main
+        install -Dm644 "$unpacked/whatslnx.desktop" /app/share/applications/whatslnx.desktop
+      - install -Dm755 -t /app/bin/ ../whatslnx
+      - patch-electron-desktop-filename /app/main/resources/app.asar
+      - >-
+        sed 's|com.whatslnx.app|io.github.kmmuntasir.WhatsLNX|g'
+        assets/whatslnx.appdata.xml >
+        /app/share/metainfo/io.github.kmmuntasir.WhatsLNX.appdata.xml
+      - >-
+        for size in 16 24 32 48 64 128 256 512; do
+          install -Dm644 "assets/icons/${size}x${size}.png"
+          "/app/share/icons/hicolor/${size}x${size}/apps/whatslnx.png";
+        done
+      - install -Dm644 assets/icons/icon.svg /app/share/icons/hicolor/scalable/apps/whatslnx.svg

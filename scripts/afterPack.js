@@ -6,6 +6,7 @@ exports.default = async function(context) {
 
   const appOutDir = context.appOutDir;
   const isSnap = context.targets.some(t => t.name === 'snap');
+  const isFlatpak = context.targets.some(t => t.name === 'flatpak');
 
   // Remove chrome-sandbox
   const chromeSandboxPath = path.join(appOutDir, 'chrome-sandbox');
@@ -30,6 +31,11 @@ exports.default = async function(context) {
         console.log(`Patched ${script} (removed -e)`);
       }
     }
+    return;
+  }
+
+  if (isFlatpak) {
+    // Flatpak uses zypak via Electron BaseApp — no --no-sandbox wrapper needed
     return;
   }
 
