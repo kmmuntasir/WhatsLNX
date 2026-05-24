@@ -75,6 +75,15 @@ flatpak run io.github.kmmuntasir.WhatsLNX
 - Node.js 24+ and npm
 - Linux (Ubuntu 24.04+ recommended)
 
+For Flatpak builds, also install:
+
+```bash
+sudo apt-get install flatpak-builder
+flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+flatpak install --user -y flathub org.electronjs.Electron2.BaseApp//24.08
+```
+
 ### Build
 
 ```bash
