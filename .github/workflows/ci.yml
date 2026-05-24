@@ -38,4 +38,4 @@ jobs:
           flatpak install --user -y flathub org.electronjs.Electron2.BaseApp//24.08
 
       - name: Build all targets
-        run: npm run build
+        run: npm run build -- --publish never
