@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, shell, nativeTheme, dialog, ipcMain } = require('electron');
+const { app, BrowserWindow, session, shell, nativeTheme, dialog, ipcMain, desktopCapturer } = require('electron');
 const path = require('path');
 const { createTray } = require('./tray');
 const { showNativeNotification } = require('./notifications');
@@ -97,9 +97,37 @@ async function init() {
     callback(allowed.includes(permission));
   });
 
-  // --- Screen sharing: use native PipeWire system picker ---
-  session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
-    callback({ useSystemPicker: true });
+  // --- Screen sharing: desktopCapturer with long-lived cache ---
+  let cachedScreenSource = null;
+  let cacheTimer = null;
+
+  session.defaultSession.setDisplayMediaRequestHandler(async (_request, callback) => {
+    // Return cached source immediately (prevents portal reopening & timeout)
+    if (cachedScreenSource) {
+      callback({ video: cachedScreenSource });
+      return;
+    }
+
+    try {
+      const sources = await desktopCapturer.getSources({
+        types: ['screen', 'window'],
+        thumbnailSize: { width: 0, height: 0 },
+        fetchWindowIcons: false,
+      });
+      if (sources.length > 0) {
+        const screen = sources.find(s => s.id.startsWith('screen')) || sources[0];
+        cachedScreenSource = screen;
+        if (cacheTimer) clearTimeout(cacheTimer);
+        // Keep cache alive for 5 minutes — prevents timeout on slow picks
+        cacheTimer = setTimeout(() => { cachedScreenSource = null; }, 300000);
+        callback({ video: screen });
+      } else {
+        callback({});
+      }
+    } catch (err) {
+      console.error('[display-media] Error:', err.message);
+      callback({});
+    }
   });
 
   // --- Download interception: use native save dialog ---
