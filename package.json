@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "description": "A minimalist, high-performance unofficial WhatsApp desktop client for Linux",
   "main": "src/main.js",
-  "author": "Muntasir Billah Munna",
+  "author": {
+    "name": "Muntasir Billah Munna",
+    "email": "kmmuntasir@gmail.com"
+  },
   "license": "GPL-3.0",
   "repository": {
     "type": "git",

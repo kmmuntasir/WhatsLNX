@@ -10,26 +10,24 @@ linux:
   category: Network
   mimeTypes:
     - x-scheme-handler/whatsapp
-  appdata:
-    path: assets/whatslnx.appdata.xml
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+    - target: snap
+      arch:
+        - x64
   desktop:
-    Name: WhatsLNX
-    Comment: Unofficial WhatsApp Desktop Client for Linux
-    Categories: Network;InstantMessaging;Chat;
-    StartupWMClass: WhatsLNX
-    MimeType: x-scheme-handler/whatsapp
-    Keywords: whatsapp;chat;messenger;message;
-
-targets:
-  - target: AppImage
-    arch:
-      - x64
-  - target: deb
-    arch:
-      - x64
-  - target: snap
-    arch:
-      - x64
+    entry:
+      Name: WhatsLNX
+      Comment: Unofficial WhatsApp Desktop Client for Linux
+      Categories: Network;InstantMessaging;Chat;
+      StartupWMClass: WhatsLNX
+      MimeType: x-scheme-handler/whatsapp
+      Keywords: whatsapp;chat;messenger;message;
 
 snap:
   confinement: strict
