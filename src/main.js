@@ -195,11 +195,14 @@ function createMainWindow() {
     event.preventDefault();
     const match = title.match(/^\((\d+)\)/);
     if (match) {
-      mainWindow.setTitle(`WhatsLNX (${match[1]})`);
-      if (tray) tray.updateBadge(parseInt(match[1], 10));
+      const count = parseInt(match[1], 10);
+      mainWindow.setTitle(`WhatsLNX (${count})`);
+      if (tray) tray.updateBadge(count);
+      app.setBadgeCount(count);
     } else {
       mainWindow.setTitle('WhatsLNX');
       if (tray) tray.updateBadge(0);
+      app.setBadgeCount(0);
     }
   });
 
