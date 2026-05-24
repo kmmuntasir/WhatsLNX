@@ -92,8 +92,8 @@ WhatsLNX addresses every issue above by:
 - Programmatically appending Wayland flags before app initialization.
 - Auto-granting media permissions and pre-connecting Snap sandbox plugs.
 - Routing all file operations through xdg-desktop-portal.
-- Using Electron's `nativeTheme` API to detect and sync OS dark mode in real time via DOM injection.
-- Respecting system font settings through CSS injection.
+- Passing through OS theme state so WhatsApp Web's built-in `prefers-color-scheme` detection works correctly.
+- Providing user-configurable font settings (Serif, Sans-Serif, Monospace) via a non-intrusive settings panel.
 
 ---
 
@@ -139,9 +139,9 @@ WhatsLNX addresses every issue above by:
 │  └── Wayland flag injection                     │
 ├─────────────────────────────────────────────────┤
 │  preload.js / preload.ts  (Preload Layer)       │
-│  ├── Theme DOM injection bridge                 │
+│  ├── Theme passthrough (prefers-color-scheme)   │
 │  ├── Notification interception bridge           │
-│  ├── Font CSS injection                         │
+│  ├── Font CSS injection (user-configured)       │
 │  └── IPC bridge (main ↔ renderer)              │
 ├─────────────────────────────────────────────────┤
 │  WhatsApp Web  (web.whatsapp.com)               │
@@ -153,7 +153,7 @@ WhatsLNX addresses every issue above by:
 
 - **Main process**: Manages window lifecycle, IPC, permissions, downloads, tray, theme.
 - **Renderer process**: Loads `https://web.whatsapp.com` with `contextIsolation: true` and `nodeIntegration: false`.
-- **Preload script**: Bridges theme and notification state between main and renderer via safe `contextBridge` APIs.
+- **Preload script**: Bridges notification state and user font preferences between main and renderer via safe `contextBridge` APIs. Forwards OS theme state to WhatsApp Web's native `prefers-color-scheme` detection.
 
 ### 4.4 Key Design Decisions
 
@@ -205,17 +205,33 @@ WhatsLNX addresses every issue above by:
 - **Snap**: Must declare and auto-connect the following plugs in `snapcraft.yaml`:
   ```yaml
   plugs:
-    camera:
+    audio-playback:
     audio-record:
+    browser-support:
+    camera:
     desktop:
     desktop-legacy:
-    wayland:
-    x11:
-    unity7:
+    hardware-observe:
+    home:
+    mount-observe:
     network:
     network-bind:
-    pulseaudio:
+    network-observe:
+    network-status:
     opengl:
+    removable-media:
+    screen-inhibit-control:
+    unity7:
+    wayland:
+    x11:
+  ```
+- Content plugs (for theme/icon/sound integration):
+  ```yaml
+  plugs:
+    gtk-2-themes:
+    gtk-3-themes:
+    icon-themes:
+    sound-themes:
   ```
 - Auto-connection must be requested via Snap store declaration so users do not need manual `snap connect` commands.
 - **DEB**: No sandbox; hardware access works by default. Must verify udev rules do not block camera/mic access.
@@ -261,9 +277,14 @@ WhatsLNX addresses every issue above by:
 - Download progress must not be shown in a custom UI — rely on the desktop environment's native download progress indicator (if any).
 
 #### FR-4.2: Native File Picker for Uploads
-- File upload dialogs triggered by WhatsApp Web must open the system's native file picker.
+- File upload dialogs triggered by WhatsApp Web must open the system's native file picker (xdg-desktop-portal).
 - Electron uses xdg-desktop-portal automatically on Linux when the GTK theme is set. Must verify this works correctly on GNOME and KDE.
 - Must support multi-file selection where WhatsApp Web allows it.
+
+#### FR-4.3: Drag-and-Drop File Support
+- Users must be able to drag files from the system's native file manager (Nautilus, Dolphin, Thunar) directly into the WhatsApp Web chat area to send them.
+- Must support dragging multiple files simultaneously.
+- Must work correctly under both Wayland and X11 sessions.
 
 ### 5.5 URL Handling
 
@@ -271,8 +292,13 @@ WhatsLNX addresses every issue above by:
 - Links clicked inside WhatsApp Web must open in the user's default system browser, not inside the WhatsLNX window.
 - Must intercept `new-window` events and use `shell.openExternal()` to delegate to the OS.
 
-#### FR-5.2: WhatsApp Deep Links
-- `whatsapp://` protocol links should be handled if feasible (stretch goal for v1.1).
+#### FR-5.2: WhatsApp Deep Links (Mandatory)
+- The app must register itself as the default handler for the `whatsapp://` URI scheme.
+- Must use `app.setAsDefaultProtocolClient('whatsapp')` to register the protocol on Linux.
+- The `.desktop` file must include `MimeType=x-scheme-handler/whatsapp;` and `update-desktop-database` must be triggered on install.
+- Must handle deep links on cold start (check `process.argv` for the URL) and warm start (via `second-instance` event).
+- Supported deep link formats: `whatsapp://send?phone={number}`, `whatsapp://send?text={message}`, `whatsapp://send?phone={number}&text={message}`.
+- When a deep link is received, the app must navigate WhatsApp Web to the appropriate compose/chat view.
 
 ---
 
@@ -298,33 +324,36 @@ WhatsLNX addresses every issue above by:
 
 ### 6.2 Dynamic Theming
 
-#### OIR-2.1: System Theme Detection
-- Must use Electron's `nativeTheme.shouldUseDarkColors` API to detect the current OS theme at startup.
-- Must listen to `nativeTheme.on('updated')` to detect real-time theme changes (e.g., user toggles dark mode in GNOME Settings).
+#### OIR-2.1: Theme Passthrough to WhatsApp Web
+- WhatsApp Web has built-in support for detecting the system's `prefers-color-scheme` media query and automatically switching between light and dark themes.
+- WhatsLNX must NOT manually inject dark/light mode classes into the DOM. Instead, it must ensure that Electron's renderer correctly reports the OS theme state so that WhatsApp Web's native theme detection works as intended.
+- The Electron renderer respects `prefers-color-scheme` based on `nativeTheme.shouldUseDarkColors` by default. No manual DOM injection is required.
+- Must verify that real-time OS theme changes (e.g., toggling dark mode in GNOME Settings) propagate to WhatsApp Web without app restart.
 
-#### OIR-2.2: WhatsApp Web Theme Injection
-- Must inject JavaScript into the WhatsApp Web DOM to toggle theme classes:
-  - **Dark mode**: Set `document.body.classList.add('dark')` or change `'color-refresh'` to `'color-refresh-dark'` (whichever is current for the WhatsApp Web version).
-  - **Light mode**: Remove the `'dark'` class or revert to `'color-refresh'`.
-- Must perform theme injection:
-  1. On initial page load (after DOM ready).
-  2. On every OS theme change event.
-  3. On WhatsApp Web navigation/page reload.
-- Must use a MutationObserver to re-apply the theme if WhatsApp Web's internal logic overrides it.
-
-#### OIR-2.3: Theme Preference Override
-- Users must be able to override automatic theme detection via a settings option:
-  - **System** (default): Follows OS theme.
-  - **Light**: Forces light mode regardless of OS setting.
-  - **Dark**: Forces dark mode regardless of OS setting.
+#### OIR-2.2: Theme Preference Override
+- Users must be able to override automatic theme detection via the Settings window (accessible only from the tray icon menu):
+  - **System** (default): WhatsApp Web follows OS theme natively.
+  - **Light**: Forces light mode by setting `nativeTheme.themeSource = 'light'`.
+  - **Dark**: Forces dark mode by setting `nativeTheme.themeSource = 'dark'`.
 - The override must be persisted via `electron-store`.
+- When set to "System", `nativeTheme.themeSource` must be set to `'system'` (Electron default).
 
-### 6.3 Font Rendering
+### 6.3 Font Configuration
 
-#### OIR-3.1: System Font Respect
-- Must inject CSS to match the system's default font family and rendering settings.
-- Must read the system font from GTK/Qt settings where possible.
-- Must not override WhatsApp Web's own font sizing — only the font family and antialiasing.
+#### OIR-3.1: User-Configurable Fonts
+- Users must be able to configure three font families via the Settings window (accessible only from the tray icon menu):
+  - **Serif font**: Default system serif font (e.g., Times New Roman, Noto Serif).
+  - **Sans-Serif font**: Default system sans-serif font (e.g., Noto Sans, Ubuntu).
+  - **Monospace font**: Default system monospace font (e.g., Noto Sans Mono, Ubuntu Mono).
+- Font selections must be applied via CSS injection into the WhatsApp Web renderer, overriding the default font-family declarations.
+- Font selections must be persisted via `electron-store`.
+- If the user has not configured any custom fonts, no CSS injection is performed — WhatsApp Web uses its own defaults.
+- Must provide a "Reset to Default" option that clears all font overrides.
+
+#### OIR-3.2: Font Settings UI
+- Font settings must be accessible only through the tray icon context menu (not through any toolbar or overlay on the main window).
+- Each font family field must use a system-native font picker dropdown listing available system fonts.
+- Changes must apply immediately without requiring app restart.
 
 ### 6.4 Spell Check
 
@@ -394,18 +423,33 @@ WhatsLNX addresses every issue above by:
 - **Required plugs** (must be auto-connected):
   ```yaml
   plugs:
-    camera:
+    audio-playback:
     audio-record:
+    browser-support:
+    camera:
     desktop:
     desktop-legacy:
-    wayland:
-    x11:
-    unity7:
+    hardware-observe:
+    home:
+    mount-observe:
     network:
     network-bind:
-    pulseaudio:
+    network-observe:
+    network-status:
     opengl:
-    home:
+    removable-media:
+    screen-inhibit-control:
+    unity7:
+    wayland:
+    x11:
+  ```
+- Content plugs for theme/icon/sound integration:
+  ```yaml
+  plugs:
+    gtk-2-themes:
+    gtk-3-themes:
+    icon-themes:
+    sound-themes:
   ```
 - **Auto-connection**: Must submit a snap declaration to the Snap Store to auto-connect `camera` and `audio-record` plugs. Without this, users would need to run `snap connect whatslnx:camera` manually.
 - **Confinement**: `strict` (default for Snap Store). Must not use `devmode` or `classic`.
@@ -425,7 +469,7 @@ All packages must include:
 - **AppStream metadata** (`whatslnx.appdata.xml`): For software center discoverability.
 - **Desktop entry** (`whatslnx.desktop`): With proper `Name`, `Comment`, `Icon`, `Categories`, `StartupWMClass`.
 - **Application icon**: SVG and PNG formats in standard sizes (16, 24, 32, 48, 64, 128, 256, 512).
-- **MIME types**: `x-scheme-handler/whatsapp` (for future deep link support).
+- **MIME types**: `x-scheme-handler/whatsapp` (mandatory — for `whatsapp://` deep link handling).
 
 ### 8.5 Code Signing
 
@@ -454,6 +498,7 @@ All packages must include:
 | Item | Action |
 |------|--------|
 | Show/Hide WhatsLNX | Toggle main window visibility |
+| Settings... | Open the Settings window (fonts, theme override) |
 | --- (separator) | --- |
 | Quit | Fully quit the application (not just close window) |
 
@@ -461,9 +506,14 @@ All packages must include:
 
 WhatsLNX must NOT add any custom UI overlays, toolbars, sidebars, or panels to the WhatsApp Web interface. The entire visual experience must be unmodified WhatsApp Web content.
 
-**Exceptions** (only if needed):
-- A minimal "loading" splash screen before WhatsApp Web finishes loading.
-- A settings window (opened via tray menu or keyboard shortcut) for theme override preference — this must be a separate Electron window, not injected into the WhatsApp Web content.
+**Exception**:
+- A Settings window opened via the tray icon context menu. This is a separate Electron window (not injected into WhatsApp Web content) containing:
+  - **Theme override**: Radio buttons for System / Light / Dark.
+  - **Font configuration**: Dropdowns for Serif, Sans-Serif, and Monospace font families with a "Reset to Default" button.
+
+### 9.4 Splash Screen
+
+No custom splash screen is required. WhatsApp Web provides its own loading indicator on initial page load. The BrowserWindow's `backgroundColor` property should match the current theme (dark: `#1a1a1a`, light: `#ffffff`) to prevent a white flash before WhatsApp Web's loading screen renders.
 
 ---
 
@@ -501,13 +551,19 @@ WhatsLNX must NOT add any custom UI overlays, toolbars, sidebars, or panels to t
 | Video call works | ☐ | ☐ | ☐ | ☐ | ☐ |
 | Screen share works | ☐ | ☐ | — | — | — |
 | Native notification appears | ☐ | ☐ | ☐ | ☐ | ☐ |
-| Dark mode auto-sync | ☐ | ☐ | ☐ | ☐ | ☐ |
-| Native file picker opens | ☐ | ☐ | ☐ | ☐ | ☐ |
+| Dark mode auto-sync (via `prefers-color-scheme`) | ☐ | ☐ | ☐ | ☐ | ☐ |
+| Native file picker opens (upload) | ☐ | ☐ | ☐ | ☐ | ☐ |
 | Download triggers native save dialog | ☐ | ☐ | ☐ | ☐ | ☐ |
+| Drag-and-drop files into chat | ☐ | ☐ | ☐ | ☐ | ☐ |
 | Tray icon visible + functional | ☐ | ☐ | ☐ | ☐ | ☐ |
+| Settings window opens from tray | ☐ | ☐ | ☐ | ☐ | ☐ |
+| Font configuration applies correctly | ☐ | ☐ | ☐ | ☐ | ☐ |
+| Theme override (system/light/dark) | ☐ | ☐ | ☐ | ☐ | ☐ |
 | Unread badge count accurate | ☐ | ☐ | ☐ | ☐ | ☐ |
 | Second instance focuses existing | ☐ | ☐ | ☐ | ☐ | ☐ |
 | Links open in default browser | ☐ | ☐ | ☐ | ☐ | ☐ |
+| `whatsapp://` deep link opens app | ☐ | ☐ | ☐ | ☐ | ☐ |
+| Deep link navigates to correct chat | ☐ | ☐ | ☐ | ☐ | ☐ |
 | Window state persists | ☐ | ☐ | ☐ | ☐ | ☐ |
 
 ### 11.2 Per-Package Testing
@@ -520,6 +576,9 @@ WhatsLNX must NOT add any custom UI overlays, toolbars, sidebars, or panels to t
 | Camera/mic work without manual config | ☐ | ☐ | ☐ |
 | Appears in application menu | ☐ | ☐ | ☐ |
 | Appears in GNOME Software / KDE Discover | — | ☐ | — |
+| `whatsapp://` deep link registered | ☐ | ☐ | ☐ |
+| Drag-and-drop from file manager | ☐ | ☐ | ☐ |
+| Removable media access for file transfers | ☐ | ☐ | ☐ |
 
 ### 11.3 Automated Testing
 
@@ -548,6 +607,7 @@ WhatsLNX must NOT add any custom UI overlays, toolbars, sidebars, or panels to t
 - [ ] Window state persistence
 - [ ] Basic tray icon (show/hide/quit)
 - [ ] Links open in default browser
+- [ ] `whatsapp://` deep link handler
 - [ ] AppImage build
 
 ### Phase 2: Native Integration (v0.2.0)
@@ -556,10 +616,13 @@ WhatsLNX must NOT add any custom UI overlays, toolbars, sidebars, or panels to t
 
 - [ ] Automatic media permission granting
 - [ ] Native notification bubbles
-- [ ] Dark/light theme sync with OS
+- [ ] Theme passthrough to WhatsApp Web (verify `prefers-color-scheme` works)
+- [ ] Theme override via Settings window (system/light/dark)
 - [ ] Native file picker for uploads
 - [ ] Native save dialog for downloads
+- [ ] Drag-and-drop file support
 - [ ] Unread badge count in tray/page title
+- [ ] Settings window with font configuration (Serif, Sans-Serif, Monospace)
 - [ ] Snap package with auto-connected plugs
 - [ ] DEB package
 
@@ -569,11 +632,8 @@ WhatsLNX must NOT add any custom UI overlays, toolbars, sidebars, or panels to t
 
 - [ ] Audio/video calling verified on all target DEs
 - [ ] Screen sharing via PipeWire on Wayland
-- [ ] Theme preference override (system/light/dark)
-- [ ] Font rendering sync
 - [ ] AppStream metadata
 - [ ] Application icon (all sizes)
-- [ ] Splash screen on startup
 - [ ] Auto-update support (AppImage)
 - [ ] Published to Snap Store
 - [ ] Published to GitHub Releases
@@ -584,7 +644,6 @@ WhatsLNX must NOT add any custom UI overlays, toolbars, sidebars, or panels to t
 
 - [ ] Spell checker integration
 - [ ] Keyboard shortcuts (global hotkeys for mute, etc.)
-- [ ] `whatsapp://` protocol handler
 - [ ] Flatpak package (if demand exists)
 - [ ] MPRIS integration for voice message playback
 - [ ] Custom CSS injection for user theming
@@ -610,7 +669,7 @@ WhatsLNX must NOT add any custom UI overlays, toolbars, sidebars, or panels to t
 | Risk | Severity | Probability | Mitigation |
 |------|----------|-------------|------------|
 | WhatsApp Web blocks Electron user agents | High | Medium | User-Agent spoofing mimics standard Chrome. Monitor and update UA string with each release. |
-| WhatsApp Web changes DOM structure, breaking theme injection | Medium | Medium | Use MutationObserver to re-apply. Monitor WhatsApp Web updates. Fall back to `prefers-color-scheme` CSS media query. |
+| WhatsApp Web stops supporting `prefers-color-scheme` for theme detection | Medium | Low | Fall back to `nativeTheme.themeSource` override + DOM class injection as documented in OIR-2.2. |
 | Snap Store rejects auto-connect declaration for camera/mic | High | Low | Provide clear documentation for manual `snap connect` as fallback. Offer AppImage as alternative. |
 | Electron security vulnerability | High | Low | Pin to latest stable Electron. Use GitHub Dependabot for automated security updates. |
 | GNOME removes tray icon support entirely | Medium | Medium | Already requires AppIndicator extension. Document this requirement. Consider alternative approaches (e.g., GNOME Extension). |
@@ -622,19 +681,34 @@ WhatsLNX must NOT add any custom UI overlays, toolbars, sidebars, or panels to t
 
 ## Appendix A: Competitive Analysis
 
-| Feature | WhatsLNX (planned) | Whatsdesk | Whatsie | WhatsApp for Linux |
-|---------|:---:|:---:|:---:|:---:|
-| Framework | Electron | Electron | Qt WebEngine | GTK + WebKit |
-| Wayland support | Auto-detected | Manual flags needed | Partial | Unknown |
-| WebRTC calling | Auto-permission | Broken in Snap | Works | Unknown |
-| Native file dialogs | xdg-desktop-portal | Custom Electron | Custom | Custom |
-| Theme sync | Auto (nativeTheme) | Manual | Manual | Manual |
-| Snap auto-connect | Planned | Not configured | N/A | N/A |
-| Session persistence | Yes | Yes | Yes | Yes |
-| Tray icon | Yes | Yes | Yes | Yes |
-| Unread badge | Yes | No | Yes | No |
-| Auto-update | Yes | No | No | No |
-| Font sync | Yes | No | No | No |
+| Feature | **WhatsLNX** (planned) | **WhatsDesk** | **Whatsie** | **WhatsApp for Linux** | **whatsapp-linux-app** | **Whatsup** | **WhatsLinux** | **WhatsApp Web** (Official) |
+|---------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Framework | Electron | Electron | Qt WebEngine | GTK + WebKit | Electron | Electron | Electron | N/A (browser) |
+| Wayland support | Auto | Manual | Partial | Unknown | Manual | Unknown | Unknown | Browser-dependent |
+| WebRTC calling | Auto-permission | Broken in Snap | Yes | Unknown | Partial | Unknown | Unknown | Yes (browser) |
+| Native file dialogs | xdg-desktop-portal | Custom | Custom | Custom | Unknown | Unknown | Unknown | Browser-dependent |
+| Theme sync with OS | Via `prefers-color-scheme` | Manual | Manual | Manual | Unknown | Unknown | Unknown | Via browser `prefers-color-scheme` |
+| System tray icon | Yes | Yes | Yes | Yes | Yes | Yes | Unknown | No |
+| Native notifications | Yes | Yes | Yes | Yes | Yes | Unknown | Unknown | Browser-dependent |
+| Unread badge | Yes | No | Yes | No | Unknown | Unknown | Unknown | Tab title only |
+| Drag-and-drop files | Yes | Unknown | Unknown | Unknown | Unknown | Unknown | Unknown | Yes (browser) |
+| Font configuration | Yes (3 families) | No | No | No | No | No | No | No |
+| Deep link support | Yes (`whatsapp://`) | No | No | No | Unknown | Unknown | Unknown | N/A |
+| Snap auto-connect | Planned | Not configured | Yes | N/A | Unknown | Unknown | Unknown | N/A |
+| Session persistence | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Browser-dependent |
+| Auto-update | Yes | No | No | No | Unknown | Unknown | Unknown | N/A |
+| Package formats | AppImage, Snap, DEB | AppImage, DEB, Snap | Snap, AppImage, DEB | DEB, Flatpak | Snap | Unknown | Unknown | N/A |
+| Spell check | System | Unknown | Yes | Unknown | Unknown | Unknown | Unknown | Browser-dependent |
+| Custom CSS theming | Planned | No | No | No | No | No | No | No |
+
+**Notes on competitors:**
+- **WhatsDesk** (zeronetworks/whatsdesk): Electron-based. Known for Snap permission issues with camera/mic. No auto-connect configuration.
+- **Whatsie** (keshavbhatt/whatsie): Qt WebEngine-based. Most feature-rich competitor. Uses KDE/Qt frameworks (KF6). Has extensive Snap plug configuration but Qt-based.
+- **WhatsApp for Linux** (eneshecan/WhatsApp-for-Linux): C++ with gtkmm and WebKitGTK. Lightweight but WebKitGTK has WebRTC issues.
+- **whatsapp-linux-app** (sayedulsayem/whatsapp-linux-desktop): Electron-based, Snap only. Minimal features.
+- **Whatsup**: Unofficial Electron client. Limited documentation on feature set.
+- **WhatsLinux**: Unofficial Electron client. Limited documentation on feature set.
+- **WhatsApp Web** (Official): Running in a browser tab. Serves as the baseline — WhatsLNX wraps this experience and adds native desktop integration.
 
 ---
 
@@ -645,18 +719,20 @@ WhatsLNX must NOT add any custom UI overlays, toolbars, sidebars, or panels to t
 | API | Purpose |
 |-----|---------|
 | `app.requestSingleInstanceLock()` | Prevent multiple instances |
+| `app.setAsDefaultProtocolClient('whatsapp')` | Register `whatsapp://` deep link handler |
 | `app.commandLine.appendSwitch()` | Inject Wayland flags |
 | `BrowserWindow` | Main window management |
 | `session.defaultSession.setPermissionRequestHandler()` | Auto-grant media permissions |
-| `session.defaultSession.on('will-download')` | Intercept downloads |
-| `nativeTheme.shouldUseDarkColors` | Detect OS dark mode |
-| `nativeTheme.on('updated')` | Listen for theme changes |
+| `session.defaultSession.on('will-download')` | Intercept downloads for native save dialog |
+| `nativeTheme.themeSource` | Control theme override (system/light/dark) |
+| `nativeTheme.shouldUseDarkColors` | Detect OS dark mode state |
+| `nativeTheme.on('updated')` | Listen for OS theme changes |
 | `Tray` | System tray icon and menu |
 | `shell.openExternal()` | Open links in default browser |
 | `Notification` | Native system notifications |
 | `contextBridge` | Safe IPC between main and renderer |
-| `webContents.executeJavaScript()` | Theme injection into WhatsApp DOM |
-| `electron-store` | Persist user preferences |
+| `webContents.executeJavaScript()` | Font CSS injection into WhatsApp DOM |
+| `electron-store` | Persist user preferences (fonts, theme, window state) |
 
 ### Key Chromium Flags for Linux
 
@@ -670,15 +746,34 @@ WhatsLNX must NOT add any custom UI overlays, toolbars, sidebars, or panels to t
 
 | Interface | Purpose | Auto-connect |
 |-----------|---------|:---:|
-| `camera` | Webcam access for video calls | Yes (needs store declaration) |
+| `audio-playback` | Audio playback for notifications and calls | Yes |
 | `audio-record` | Microphone access for voice calls | Yes (needs store declaration) |
-| `pulseaudio` | Audio playback | Yes |
+| `browser-support` | Chromium browser support | Yes |
+| `camera` | Webcam access for video calls | Yes (needs store declaration) |
+| `desktop` | Desktop integration | Yes |
+| `desktop-legacy` | Legacy desktop integration (X11) | Yes |
+| `hardware-observe` | Hardware detection for device enumeration | Yes |
+| `home` | Access to home directory for downloads/settings | Yes |
+| `mount-observe` | Observe mount points for removable media | Yes |
+| `network` | Internet access for WhatsApp Web | Yes |
+| `network-bind` | Network binding for local services | Yes |
+| `network-observe` | Network state observation | Yes |
+| `network-status` | Network connectivity status | Yes |
+| `opengl` | Hardware acceleration | Yes |
+| `removable-media` | Access USB drives and SD cards for file transfers | Yes |
+| `screen-inhibit-control` | Prevent screen sleep during video calls | Yes |
+| `unity7` | Ubuntu Unity desktop integration | Yes |
 | `wayland` | Wayland compositor access | Yes |
 | `x11` | X11 fallback | Yes |
-| `desktop` | Desktop integration | Yes |
-| `network` | Internet access for WhatsApp Web | Yes |
-| `opengl` | Hardware acceleration | Yes |
-| `home` | Access to home directory for downloads | Yes |
+
+### Snap Content Plugs
+
+| Content Plug | Purpose | Slot Source |
+|-------------|---------|-------------|
+| `gtk-2-themes` | GTK2 theme integration | `gtk-common-themes` |
+| `gtk-3-themes` | GTK3 theme integration | `gtk-common-themes` |
+| `icon-themes` | System icon theme access | `gtk-common-themes` |
+| `sound-themes` | System sound theme access | `gtk-common-themes` |
 
 ### Sources
 
@@ -692,3 +787,7 @@ WhatsLNX must NOT add any custom UI overlays, toolbars, sidebars, or panels to t
 - [xdg-desktop-portal Documentation](https://flatpak.github.io/xdg-desktop-portal/)
 - [Electron Issue #2911: Native File Picker](https://github.com/electron/electron/issues/2911)
 - [Electron Issue #29115: PipeWire WebRTC](https://github.com/electron/electron/issues/29115)
+- [Electron Deep Links Tutorial](https://electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-app)
+- [prefers-color-scheme (MDN)](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-color-scheme)
+- [WhatsApp URL Scheme (Help Center)](https://faq.whatsapp.com/425247423114725)
+- [Electron Linux Deep Linking (StackOverflow)](https://stackoverflow.com/questions/62677201/electron-linux-how-to-setup-deep-linking-from-a-web-browser)
