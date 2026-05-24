@@ -97,12 +97,27 @@ async function init() {
     callback(allowed.includes(permission));
   });
 
-  // --- Screen sharing: desktopCapturer triggers PipeWire portal on Wayland ---
+  // --- Screen sharing: desktopCapturer with cached source ---
+  let cachedScreenSource = null;
+
   session.defaultSession.setDisplayMediaRequestHandler(async (request, callback) => {
+    // Return cached source immediately if available (prevents portal reopening)
+    if (cachedScreenSource) {
+      callback({ video: cachedScreenSource });
+      return;
+    }
+
     try {
-      const sources = await desktopCapturer.getSources({ types: ['screen', 'window'] });
+      const sources = await desktopCapturer.getSources({
+        types: ['screen', 'window'],
+        thumbnailSize: { width: 0, height: 0 },
+        fetchWindowIcons: false,
+      });
       if (sources.length > 0) {
         const screen = sources.find(s => s.id.startsWith('screen')) || sources[0];
+        cachedScreenSource = screen;
+        // Clear cache after 30 seconds so user can pick a different source next time
+        setTimeout(() => { cachedScreenSource = null; }, 30000);
         callback({ video: screen });
       } else {
         callback({});
