@@ -135,12 +135,12 @@ function createBadgedIcon(icon, count) {
     }
   }
 
-  // Outline pass (dark)
+  // Outline pass (white, 3px stroke)
   for (const p of pixels) {
-    for (let dy = -1; dy <= 1; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -3; dy <= 3; dy++) {
+      for (let dx = -3; dx <= 3; dx++) {
         if (dx !== 0 || dy !== 0) {
-          setPixel(p.x + dx, p.y + dy, 255, 255, 255, 230);
+          setPixel(p.x + dx, p.y + dy, 255, 220, 0, 230);
         }
       }
     }
