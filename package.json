@@ -1,0 +1,30 @@
+{
+  "name": "whatslnx",
+  "productName": "WhatsLNX",
+  "version": "0.1.0",
+  "description": "A minimalist, high-performance unofficial WhatsApp desktop client for Linux",
+  "main": "src/main.js",
+  "author": "Muntasir Billah Munna",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kmmuntasir/WhatsLNX.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --linux",
+    "build:appimage": "electron-builder --linux AppImage",
+    "build:snap": "electron-builder --linux snap",
+    "build:deb": "electron-builder --linux deb",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "electron-store": "^11.0.2",
+    "electron-updater": "^6.8.3"
+  },
+  "devDependencies": {
+    "electron": "^42.2.0",
+    "electron-builder": "^26.8.1",
+    "eslint": "^9.0.0"
+  }
+}

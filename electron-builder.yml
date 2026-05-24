@@ -1,0 +1,76 @@
+appId: com.whatslnx.app
+productName: WhatsLNX
+copyright: Copyright © 2026 Muntasir Billah Munna
+
+directories:
+  output: dist
+
+linux:
+  icon: assets/icons
+  category: Network
+  mimeTypes:
+    - x-scheme-handler/whatsapp
+  appdata:
+    path: assets/whatslnx.appdata.xml
+  desktop:
+    Name: WhatsLNX
+    Comment: Unofficial WhatsApp Desktop Client for Linux
+    Categories: Network;InstantMessaging;Chat;
+    StartupWMClass: WhatsLNX
+    MimeType: x-scheme-handler/whatsapp
+    Keywords: whatsapp;chat;messenger;message;
+
+targets:
+  - target: AppImage
+    arch:
+      - x64
+  - target: deb
+    arch:
+      - x64
+  - target: snap
+    arch:
+      - x64
+
+snap:
+  confinement: strict
+  grade: stable
+  plugs:
+    - audio-playback
+    - audio-record
+    - browser-support
+    - camera
+    - desktop
+    - desktop-legacy
+    - hardware-observe
+    - home
+    - mount-observe
+    - network
+    - network-bind
+    - network-observe
+    - network-status
+    - opengl
+    - removable-media
+    - screen-inhibit-control
+    - unity7
+    - wayland
+    - x11
+  stagePackages:
+    - default
+
+deb:
+  depends:
+    - libnotify4
+    - libxtst6
+    - libnss3
+    - libxss1
+    - libasound2
+  afterInstall: scripts/postinstall.sh
+  afterRemove: scripts/postremove.sh
+
+appImage:
+  license: LICENSE
+
+publish:
+  provider: github
+  owner: kmmuntasir
+  repo: WhatsLNX

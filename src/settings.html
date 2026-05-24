@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsLNX Settings</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      padding: 24px;
+      overflow: hidden;
+    }
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #ffffff;
+    }
+    .section {
+      background: #2a2a2a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .field {
+      margin-bottom: 12px;
+    }
+    .field:last-child {
+      margin-bottom: 0;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+      color: #ccc;
+    }
+    select {
+      width: 100%;
+      padding: 8px 12px;
+      background: #3a3a3a;
+      color: #e0e0e0;
+      border: 1px solid #555;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+    select:focus {
+      border-color: #25d366;
+    }
+    .radio-group {
+      display: flex;
+      gap: 12px;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .radio-group input[type="radio"] {
+      accent-color: #25d366;
+    }
+    .btn-reset {
+      background: #444;
+      color: #e0e0e0;
+      border: 1px solid #555;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .btn-reset:hover {
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+  <h2>Settings</h2>
+
+  <div class="section">
+    <div class="section-title">Theme</div>
+    <div class="field">
+      <div class="radio-group">
+        <label><input type="radio" name="theme" value="system" id="theme-system"> System</label>
+        <label><input type="radio" name="theme" value="light" id="theme-light"> Light</label>
+        <label><input type="radio" name="theme" value="dark" id="theme-dark"> Dark</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Fonts</div>
+    <div class="field">
+      <label for="font-serif">Serif</label>
+      <select id="font-serif"></select>
+    </div>
+    <div class="field">
+      <label for="font-sans">Sans-Serif</label>
+      <select id="font-sans"></select>
+    </div>
+    <div class="field">
+      <label for="font-mono">Monospace</label>
+      <select id="font-mono"></select>
+    </div>
+    <button class="btn-reset" id="btn-reset-fonts">Reset to Default</button>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    // --- Load system fonts ---
+    async function loadFonts() {
+      const fonts = await ipcRenderer.invoke('get-system-fonts');
+      const allFonts = ['(default)', ...fonts];
+
+      ['font-serif', 'font-sans', 'font-mono'].forEach(id => {
+        const select = document.getElementById(id);
+        allFonts.forEach(font => {
+          const option = document.createElement('option');
+          option.value = font === '(default)' ? '' : font;
+          option.textContent = font === '(default)' ? 'Default' : font;
+          option.style.fontFamily = font === '(default)' ? '' : `'${font}'`;
+          select.appendChild(option);
+        });
+      });
+    }
+
+    // --- Load current settings ---
+    async function loadSettings() {
+      const settings = await ipcRenderer.invoke('get-settings');
+      const { themeSource, fonts } = settings;
+
+      // Theme
+      const themeRadio = document.querySelector(`input[name="theme"][value="${themeSource}"]`);
+      if (themeRadio) themeRadio.checked = true;
+
+      // Fonts
+      if (fonts) {
+        if (fonts.serif) document.getElementById('font-serif').value = fonts.serif;
+        if (fonts.sansSerif) document.getElementById('font-sans').value = fonts.sansSerif;
+        if (fonts.monospace) document.getElementById('font-mono').value = fonts.monospace;
+      }
+    }
+
+    // --- Theme change ---
+    document.querySelectorAll('input[name="theme"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        ipcRenderer.send('settings-theme', radio.value);
+      });
+    });
+
+    // --- Font changes ---
+    function getSelectedFonts() {
+      return {
+        serif: document.getElementById('font-serif').value,
+        sansSerif: document.getElementById('font-sans').value,
+        monospace: document.getElementById('font-mono').value,
+      };
+    }
+
+    ['font-serif', 'font-sans', 'font-mono'].forEach(id => {
+      document.getElementById(id).addEventListener('change', () => {
+        ipcRenderer.send('settings-fonts', getSelectedFonts());
+      });
+    });
+
+    // --- Reset fonts ---
+    document.getElementById('btn-reset-fonts').addEventListener('click', () => {
+      document.getElementById('font-serif').value = '';
+      document.getElementById('font-sans').value = '';
+      document.getElementById('font-mono').value = '';
+      ipcRenderer.send('settings-fonts', null);
+    });
+
+    // --- Init ---
+    loadFonts().then(loadSettings);
+  </script>
+</body>
+</html>
