@@ -1,3 +1,9 @@
+// Set ELECTRON_DISABLE_SANDBOX before requiring electron — needed for snap
+// where no shell wrapper can pass --no-sandbox as CLI arg to child processes
+if (process.platform === 'linux') {
+  process.env.ELECTRON_DISABLE_SANDBOX = '1';
+}
+
 const { app, BrowserWindow, session, shell, nativeTheme, dialog, ipcMain, desktopCapturer } = require('electron');
 const path = require('path');
 const { createTray } = require('./tray');

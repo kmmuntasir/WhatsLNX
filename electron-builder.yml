@@ -32,7 +32,7 @@ linux:
       Keywords: whatsapp;chat;messenger;message;
 
 snap:
-  confinement: strict
+  confinement: classic
   grade: stable
   plugs:
     - audio-playback
@@ -41,6 +41,7 @@ snap:
     - camera
     - desktop
     - desktop-legacy
+    - gsettings
     - hardware-observe
     - home
     - mount-observe
