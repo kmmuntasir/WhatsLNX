@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, shell, nativeTheme, dialog, ipcMain } = require('electron');
+const { app, BrowserWindow, session, shell, nativeTheme, dialog, ipcMain, desktopCapturer } = require('electron');
 const path = require('path');
 const { createTray } = require('./tray');
 const { showNativeNotification } = require('./notifications');
@@ -93,8 +93,24 @@ async function init() {
 
   // --- Permission handler ---
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
-    const allowed = ['media', 'notifications', 'geolocation'];
+    const allowed = ['media', 'notifications', 'geolocation', 'display-capture'];
     callback(allowed.includes(permission));
+  });
+
+  // --- Screen sharing: desktopCapturer triggers PipeWire portal on Wayland ---
+  session.defaultSession.setDisplayMediaRequestHandler(async (request, callback) => {
+    try {
+      const sources = await desktopCapturer.getSources({ types: ['screen', 'window'] });
+      if (sources.length > 0) {
+        const screen = sources.find(s => s.id.startsWith('screen')) || sources[0];
+        callback({ video: screen });
+      } else {
+        callback({});
+      }
+    } catch (err) {
+      console.error('[display-media] Error:', err.message);
+      callback({});
+    }
   });
 
   // --- Download interception: use native save dialog ---

@@ -69,7 +69,6 @@ function createBadgedIcon(icon, count) {
   const size = TRAY_SIZE;
   const resized = icon.resize({ width: size, height: size });
   const bgra = resized.toBitmap(); // Electron returns BGRA on Linux
-  console.log('[tray] bitmap length:', bgra.length, 'expected:', size * size * 4, 'icon size:', resized.getSize());
 
   // Convert BGRA -> RGBA
   const rgba = Buffer.alloc(size * size * 4);
@@ -179,7 +178,6 @@ function updateIcon() {
   if (!tray || !baseIcon) return;
   if (unreadCount > 0) {
     const badged = createBadgedIcon(baseIcon, unreadCount);
-    console.log('[tray] Badge icon size:', badged.getSize(), 'isEmpty:', badged.isEmpty());
     tray.setImage(badged);
   } else {
     tray.setImage(baseIcon);
