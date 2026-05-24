@@ -120,7 +120,9 @@ function getIconPath() {
     try {
       const fs = require('fs');
       if (fs.existsSync(p)) return p;
-    } catch {}
+    } catch {
+      // expected — path doesn't exist
+    }
   }
   return null;
 }
