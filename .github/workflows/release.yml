@@ -71,8 +71,6 @@ jobs:
 
       - name: Build APT repository
         if: steps.version-check.outputs.new_version == 'true'
-        env:
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           mkdir -p apt-repo/pool/main
           mkdir -p apt-repo/dists/stable/main/binary-amd64
@@ -91,10 +89,13 @@ jobs:
           cd dists/stable
           apt-ftparchive release . > Release
 
-          gpg --batch --yes --pinentry-mode loopback \
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          gpgconf --reload gpg-agent
+          gpg --batch --yes \
               --default-key kmmuntasir@gmail.com \
               --armor --detach-sign --sign --output Release.gpg Release
-          gpg --batch --yes --pinentry-mode loopback \
+          gpg --batch --yes \
               --default-key kmmuntasir@gmail.com \
               --clearsign --output InRelease Release
 
