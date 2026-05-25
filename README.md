@@ -2,7 +2,35 @@
 
 A minimalist, high-performance unofficial WhatsApp desktop client for Linux.
 
+[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+[![CI](https://github.com/kmmuntasir/WhatsLNX/actions/workflows/ci.yml/badge.svg)](https://github.com/kmmuntasir/WhatsLNX/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/kmmuntasir/WhatsLNX)](https://github.com/kmmuntasir/WhatsLNX/releases/latest)
+
 WhatsLNX wraps [WhatsApp Web](https://web.whatsapp.com) inside a tailored Electron shell that prioritizes system-native behavior, Wayland compatibility, and flawless WebRTC (audio/video calling) support.
+
+<p align="center">
+  <img src="assets/screenshots/desktop-screenshot.jpg" alt="WhatsLNX on Linux" width="700">
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/settings-window.png" alt="Settings window" height="300">
+  <img src="assets/screenshots/tray-icon-with-badge.png" alt="Tray icon with unread badge" height="300">
+</p>
+
+## Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Building from Source](#building-from-source)
+- [Uninstallation](#uninstallation)
+- [Configuration](#configuration)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Deep Links](#deep-links)
+- [Competitive Comparison](#competitive-comparison)
+- [Supported Platforms](#supported-platforms)
+- [Known Issues](#known-issues)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
@@ -200,6 +228,20 @@ Tested on GNOME 46+ (Wayland/X11), KDE Plasma 6+ (Wayland/X11), XFCE 4.18+.
 - **GNOME tray icons** require the [AppIndicator](https://extensions.gnome.org/extension/615/appindicator-support/) extension
 - **Screen sharing on Wayland** requires PipeWire and xdg-desktop-portal (pre-installed on most modern distros)
 - WhatsApp Web is a third-party service — feature availability depends on Meta's deployment
+
+## Contributing
+
+Bug reports and feature requests are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) before submitting a PR.
+
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for a codebase overview.
+
+## Security
+
+Found a vulnerability? Please report it privately — see [SECURITY.md](SECURITY.md).
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## License
 
