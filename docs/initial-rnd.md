@@ -1,7 +1,7 @@
 Let's look at how to structure this "reimagined" client to fix all the flaws of the existing wrappers.
 
 1. Fix the Sandbox & Permissions (Audio/Video Calling)
-To avoid the standard Snap/Flatpak calling bugs, your main process needs to explicitly handle permission requests from the WhatsApp frontend and map them to the OS.
+To avoid calling bugs common in sandboxed packages, your main process needs to explicitly handle permission requests from the WhatsApp frontend and map them to the OS.
 
 JavaScript
 // main.js
@@ -90,4 +90,4 @@ Core Wrapper: A clean Electron instance using the latest stable runtime, forcing
 
 The Injection Layer: A robust preload.js script that watches the DOM to seamlessy bridge dark/light theme switching and desktop notification badges natively to the Ubuntu dock.
 
-The Distribution: Packaging via AppImage (for absolute universal distro support) and a modern Snap/Flatpak configuration that pre-configures the audio-record and camera interface plugs so calling works the second it's installed.
+The Distribution: Packaging via AppImage (for absolute universal distro support) and DEB for Debian-based systems, with auto-granted media permissions so calling works the second it's installed.

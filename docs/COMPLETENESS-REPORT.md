@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-The WhatsLNX codebase implements **~85%** of PRD requirements across Phase 1 (MVP) and Phase 2 (Native Integration). The core wrapper engine, desktop integration, notifications, theming, font configuration, packaging pipeline, and CI/CD are all functional. Several gaps exist in non-functional requirements (security hardening, crash recovery, automated testing) and Snap configuration fidelity.
+The WhatsLNX codebase implements **~85%** of PRD requirements across Phase 1 (MVP) and Phase 2 (Native Integration). The core wrapper engine, desktop integration, notifications, theming, font configuration, packaging pipeline, and CI/CD are all functional. Several gaps exist in non-functional requirements (security hardening, crash recovery, automated testing).
 
 **Overall status:** Functional but needs hardening before v1.0 release.
 
@@ -47,7 +47,6 @@ The WhatsLNX codebase implements **~85%** of PRD requirements across Phase 1 (MV
 | Drag-and-drop file support | DONE | Default Electron behavior | No custom handling needed — BrowserWindow supports DnD natively |
 | Unread badge count | DONE | `src/main.js:198-211`, `src/preload.js:4-43`, `src/tray.js:80-155` | Title parsing, MutationObserver, tray badge rendering (pixel font PNG), `app.setBadgeCount()` |
 | Settings window + font config | DONE | `src/settings.js`, `src/settings.html` | Serif/Sans-Serif/Monospace dropdowns, `fc-list` system fonts, Reset to Default, CSS injection via IPC |
-| Snap package | DONE | `electron-builder.yml:37-62` | **Gaps: missing content plugs, `classic` confinement** (see Issues) |
 | DEB package | DONE | `electron-builder.yml:64-72` | Correct dependencies, post-install/remove scripts for `update-desktop-database` |
 
 **Phase 2 verdict: 11/11 features implemented, 2 with gaps.**
@@ -64,11 +63,10 @@ The WhatsLNX codebase implements **~85%** of PRD requirements across Phase 1 (MV
 | Application icon (all sizes) | DONE | `assets/icons/` | 16, 24, 32, 48, 64, 128, 256, 512 PNG + SVG |
 | Auto-update (AppImage) | DONE | `src/updater.js` | 4-hour poll cycle, notification on available/downloaded |
 | GitHub Releases CI/CD | DONE | `.github/workflows/release.yml` | Build + publish on push to `main` |
-| Published to Snap Store | N/A | — | Deployment action, not code |
 | Complete test matrix | NOT DONE | — | No test files exist |
 | README with installation instructions | DONE | `README.md` | Exists (not re-verified for completeness) |
 
-**Phase 3 verdict: 7/9 done (2 require manual/external action).**
+**Phase 3 verdict: 7/8 done (1 requires manual/external action).**
 
 ---
 
@@ -83,15 +81,7 @@ The WhatsLNX codebase implements **~85%** of PRD requirements across Phase 1 (MV
 - **Impact:** Settings window loads `settings.html` with full Node.js access. While it's a local HTML file (no remote content), this violates the PRD's stated security posture.
 - **Fix:** Refactor `settings.html` to use `contextBridge` + IPC like the main window. Use `ipcRenderer.invoke` via preload script instead of direct `require('electron')`.
 
-#### C2: Snap confinement is `classic` instead of `strict`
-- **File:** `electron-builder.yml:38`
-- **Code:** `confinement: classic`
-- **PRD ref:** Section 8.2 — "Confinement: `strict` (default for Snap Store). Must not use `devmode` or `classic`."
-- **Impact:** Classic confinement defeats the purpose of Snap sandboxing. The Snap Store may reject the package or flag it.
-- **Note:** This may be a pragmatic choice — Electron under strict confinement requires complex plug configuration and may break. The `ELECTRON_DISABLE_SANDBOX` flag at `main.js:4` and `--no-sandbox` at `main.js:28` suggest known compatibility issues.
-- **Fix:** Test under `strict` confinement. If sandbox issues persist, document the deviation in the PRD.
-
-#### C3: No automated tests
+#### C2: No automated tests
 - **Files:** None — no `test/` directory, no test framework in dependencies
 - **PRD ref:** Section 11.3 — "Unit tests: For utility functions (theme injection logic, unread count parsing, permission handler logic). Integration tests: Using Spectron or Playwright for Electron."
 - **Impact:** CI pipeline (`ci.yml`) only runs lint + build. `npm test` script doesn't exist in `package.json`.
@@ -101,21 +91,7 @@ The WhatsLNX codebase implements **~85%** of PRD requirements across Phase 1 (MV
 
 ### Moderate
 
-#### M1: Snap missing content plugs for theme integration
-- **File:** `electron-builder.yml:40-60`
-- **PRD ref:** Section 8.2, FR-2.2 — requires `gtk-2-themes`, `gtk-3-themes`, `icon-themes`, `sound-themes` content plugs
-- **Current:** Only standard plugs listed. No content plugs for `gtk-common-themes`.
-- **Impact:** Snap package may not respect system GTK/icon/sound themes under strict confinement. Under `classic` confinement this is moot (full filesystem access).
-- **Fix:** Add content plugs if moving to `strict` confinement:
-  ```yaml
-  plugs:
-    gtk-2-themes: null
-    gtk-3-themes: null
-    icon-themes: null
-    sound-themes: null
-  ```
-
-#### M2: No permission decision logging
+#### M1: No permission decision logging
 - **File:** `src/main.js:103-106`
 - **PRD ref:** FR-2.1 — "Permission decisions must be logged for debugging purposes."
 - **Current:** Silent allow/deny with no logging.
@@ -135,7 +111,7 @@ The WhatsLNX codebase implements **~85%** of PRD requirements across Phase 1 (MV
 
 #### M5: appId inconsistency
 - **Files:** `electron-builder.yml:1` (`com.whatslnx.app`) vs `io.github.kmmuntasir.WhatsLNX.yml` (`io.github.kmmuntasir.WhatsLNX`) vs `src/main.js:41` (`io.github.kmmuntasir.WhatsLNX`)
-- **Impact:** Desktop file may use wrong app ID. Flatpak manifest remaps correctly, but AppImage/DEB/Snap may use the wrong ID for D-Bus activation, notification identity, or desktop integration.
+- **Impact:** Desktop file may use wrong app ID. AppImage/DEB may use the wrong ID for D-Bus activation, notification identity, or desktop integration.
 - **Fix:** Standardize on `io.github.kmmuntasir.WhatsLNX` everywhere, or document the split.
 
 #### M6: `test` script missing from package.json
@@ -147,12 +123,7 @@ The WhatsLNX codebase implements **~85%** of PRD requirements across Phase 1 (MV
 
 ### Low
 
-#### L1: Flatpak support exists but not in PRD Phase 1-3
-- **Files:** `io.github.kmmuntasir.WhatsLNX.yml`, `electron-builder.yml:25-26,77-100`
-- **PRD ref:** Phase 4 — "Flatpak package (if demand exists)"
-- **Status:** Already implemented ahead of schedule. Not an issue, just ahead of PRD.
-
-#### L2: `display-capture` permission allowed but not in PRD list
+#### L1: `display-capture` permission allowed but not in PRD list
 - **File:** `src/main.js:104`
 - **PRD ref:** FR-2.1 — allowed list: `media`, `notifications`, `geolocation`
 - **Impact:** Positive — needed for screen sharing to work. PRD list is incomplete.
@@ -160,7 +131,7 @@ The WhatsLNX codebase implements **~85%** of PRD requirements across Phase 1 (MV
 
 #### L3: `no-sandbox` Chromium flag on Linux
 - **File:** `src/main.js:28`
-- **Impact:** Disables Chromium's SUID sandbox. Electron's renderer sandbox (`sandbox: true` in webPreferences) is still active. Required for Snap/Flatpak where SUID binary isn't available.
+- **Impact:** Disables Chromium's SUID sandbox. Electron's renderer sandbox (`sandbox: true` in webPreferences) is still active. Required where SUID binary isn't available.
 
 #### L4: PRD references Electron 35.x+ but project uses 42.x
 - **File:** `package.json:33` — `"electron": "^42.2.0"`
@@ -210,9 +181,7 @@ The WhatsLNX codebase implements **~85%** of PRD requirements across Phase 1 (MV
 | Item | Status | Notes |
 |---|---|---|
 | AppImage build | DONE | electron-builder config + auto-update |
-| Snap package | DONE (gaps) | Missing content plugs, `classic` not `strict` (C2, M1) |
 | DEB package | DONE | Correct dependencies, post-install/remove scripts |
-| Flatpak | DONE (bonus) | Ahead of PRD schedule (Phase 4) |
 | AppStream metadata | DONE | Complete with releases, OARS, keywords |
 | Desktop entry | DONE | Proper Name, Categories, StartupWMClass, MimeType |
 | Icon sizes (16-512 + SVG) | DONE | All 8 PNG sizes + SVG |
@@ -246,24 +215,23 @@ The WhatsLNX codebase implements **~85%** of PRD requirements across Phase 1 (MV
 | Category | Total | Done | Partial | Missing | % Complete |
 |---|---|---|---|---|---|
 | Phase 1 (MVP) | 10 | 10 | 0 | 0 | 100% |
-| Phase 2 (Native Integration) | 11 | 9 | 2 | 0 | 91% |
-| Phase 3 (Polish) | 9 | 7 | 0 | 2 | 78% |
+| Phase 2 (Native Integration) | 10 | 10 | 0 | 0 | 100% |
+| Phase 3 (Polish) | 8 | 6 | 0 | 2 | 75% |
 | Non-Functional Requirements | 11 | 8 | 2 | 1 | 82% |
 | OS Integration | 7 | 6 | 0 | 1 | 86% |
-| Packaging & Distribution | 10 | 8 | 1 | 1 | 85% |
-| **Overall** | **58** | **48** | **5** | **5** | **~87%** |
+| Packaging & Distribution | 8 | 7 | 0 | 1 | 88% |
+| **Overall** | **54** | **47** | **2** | **5** | **~87%** |
 
 ---
 
 ## 10. Recommended Priority Actions
 
 1. **Fix settings window security** (C1) — refactor to use `contextBridge` + preload
-2. **Resolve Snap confinement** (C2) — test under `strict`, add content plugs (M1)
-3. **Add automated tests** (C3) — even basic unit tests for badge parsing and permission logic
-4. **Add GPU crash recovery** (M3) — `render-process-gone` / `child-process-gone` handlers
-5. **Add window position clamping** (M4) — prevent off-screen window on display change
-6. **Standardize appId** (M5) — pick one ID, use everywhere
-7. **Add permission logging** (M2) — single `console.log` line
+2. **Add automated tests** (C2) — even basic unit tests for badge parsing and permission logic
+3. **Add GPU crash recovery** (M3) — `render-process-gone` / `child-process-gone` handlers
+4. **Add window position clamping** (M4) — prevent off-screen window on display change
+5. **Standardize appId** (M5) — pick one ID, use everywhere
+6. **Add permission logging** (M1) — single `console.log` line
 
 ---
 

@@ -20,9 +20,7 @@
     "start": "electron .",
     "build": "electron-builder --linux",
     "build:appimage": "electron-builder --linux AppImage",
-    "build:snap": "electron-builder --linux snap",
     "build:deb": "electron-builder --linux deb",
-    "build:flatpak": "electron-builder --linux flatpak",
     "lint": "eslint src/",
     "test": "node --test 'test/**/*.test.js'"
   },
