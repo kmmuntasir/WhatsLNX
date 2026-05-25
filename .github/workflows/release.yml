@@ -79,6 +79,7 @@ jobs:
           cd dists/stable
           apt-ftparchive release . > Release
 
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
           gpg --default-key kmmuntasir@gmail.com \
               --armor --detach-sign --sign --output Release.gpg Release
           gpg --default-key kmmuntasir@gmail.com \
