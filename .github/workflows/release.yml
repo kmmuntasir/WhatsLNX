@@ -79,12 +79,11 @@ jobs:
           cd dists/stable
           apt-ftparchive release . > Release
 
-          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
-          gpgconf --kill gpg-agent
-          gpg --batch --yes --pinentry-mode loopback \
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          gpg --batch --yes \
               --default-key kmmuntasir@gmail.com \
               --armor --detach-sign --sign --output Release.gpg Release
-          gpg --batch --yes --pinentry-mode loopback \
+          gpg --batch --yes \
               --default-key kmmuntasir@gmail.com \
               --clearsign --output InRelease Release
 
