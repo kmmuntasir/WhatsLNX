@@ -10,6 +10,7 @@ const { createTray } = require('./tray');
 const { showNativeNotification } = require('./notifications');
 
 const { initUpdater } = require('./updater');
+const { parseUnreadCount, isPermissionAllowed, buildDeepLinkUrl, clampPosition: clampPositionUtil, isAllowedNavigation } = require('./utils');
 
 const WHATSAPP_URL = 'https://web.whatsapp.com';
 const CHROMIUM_VERSION = process.versions.chrome || '140.0.0.0';
@@ -66,16 +67,9 @@ if (coldStartUrl) {
 
 function handleDeepLink(url) {
   if (!mainWindow) return;
-  try {
-    const parsedUrl = new URL(url);
-    if (parsedUrl.hostname === 'send') {
-      const phone = parsedUrl.searchParams.get('phone') || '';
-      const text = parsedUrl.searchParams.get('text') || '';
-      const waUrl = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`;
-      mainWindow.webContents.loadURL(waUrl);
-    }
-  } catch {
-    // Invalid URL, ignore
+  const waUrl = buildDeepLinkUrl(url);
+  if (waUrl) {
+    mainWindow.webContents.loadURL(waUrl);
   }
 }
 
@@ -101,8 +95,9 @@ async function init() {
 
   // --- Permission handler ---
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
-    const allowed = ['media', 'notifications', 'geolocation', 'display-capture'];
-    callback(allowed.includes(permission));
+    const granted = isPermissionAllowed(permission);
+    console.log('[permission]', permission, granted ? 'granted' : 'denied');
+    callback(granted);
   });
 
   // --- Screen sharing: desktopCapturer with long-lived cache ---
@@ -165,21 +160,13 @@ async function init() {
   initUpdater();
 }
 
-function clampPosition(position, bounds) {
-  if (position.x == null || position.y == null) return position;
-  const displays = screen.getAllDisplays();
-  const visible = displays.some(d => {
-    const { x, y, width, height } = d.workArea;
-    return position.x >= x && position.x < x + width && position.y >= y && position.y < y + height;
-  });
-  if (visible) return position;
-  const primary = screen.getPrimaryDisplay().workArea;
-  return { x: primary.x + 50, y: primary.y + 50 };
-}
-
 function createMainWindow() {
   const bounds = store.get('windowBounds');
-  const position = clampPosition(store.get('windowPosition'), bounds);
+  const position = clampPositionUtil(
+    store.get('windowPosition'),
+    screen.getAllDisplays(),
+    screen.getPrimaryDisplay().workArea
+  );
   const isMaximized = store.get('isMaximized', false);
 
   mainWindow = new BrowserWindow({
@@ -209,9 +196,8 @@ function createMainWindow() {
   // --- Override window title to "WhatsLNX (count)" + update tray badge ---
   mainWindow.on('page-title-updated', (event, title) => {
     event.preventDefault();
-    const match = title.match(/^\((\d+)\)/);
-    if (match) {
-      const count = parseInt(match[1], 10);
+    const count = parseUnreadCount(title);
+    if (count > 0) {
       mainWindow.setTitle(`WhatsLNX (${count})`);
       if (tray) tray.updateBadge(count);
       app.setBadgeCount(count);
@@ -239,7 +225,7 @@ function createMainWindow() {
 
   // --- Navigation guard: stay on whatsapp.com ---
   mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (!url.startsWith('https://web.whatsapp.com') && !url.startsWith('https://whatsapp.com')) {
+    if (!isAllowedNavigation(url)) {
       event.preventDefault();
       shell.openExternal(url);
     }
