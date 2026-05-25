@@ -37,14 +37,6 @@ chmod +x WhatsLNX-*.AppImage
 ./WhatsLNX-*.AppImage
 ```
 
-### Snap (Ubuntu)
-
-```bash
-snap install whatslnx
-```
-
-Camera and microphone permissions are auto-connected — no manual `snap connect` needed.
-
 ### DEB (Ubuntu/Debian/Linux Mint)
 
 ```bash
@@ -56,34 +48,12 @@ sudo dpkg -i whatslnx_*.amd64.deb
 sudo apt-get install -f  # Fix missing dependencies
 ```
 
-### Flatpak
-
-```bash
-# Download the latest Flatpak bundle
-wget https://github.com/kmmuntasir/WhatsLNX/releases/latest/download/WhatsLNX-*.flatpak
-
-# Install
-flatpak install --user WhatsLNX-*.flatpak
-
-# Run
-flatpak run io.github.kmmuntasir.WhatsLNX
-```
-
 ## Building from Source
 
 ### Prerequisites
 
 - Node.js 24+ and npm
 - Linux (Ubuntu 24.04+ recommended)
-
-For Flatpak builds, also install:
-
-```bash
-sudo apt-get install flatpak-builder
-flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
-flatpak install --user -y flathub org.electronjs.Electron2.BaseApp//24.08
-```
 
 ### Build
 
@@ -92,16 +62,14 @@ git clone https://github.com/kmmuntasir/WhatsLNX.git
 cd WhatsLNX
 npm install
 npm start        # Run in development mode
-npm run build    # Build all packages (AppImage + Snap + DEB + Flatpak)
+npm run build    # Build all packages (AppImage + DEB)
 ```
 
 ### Individual targets
 
 ```bash
 npm run build:appimage
-npm run build:snap
 npm run build:deb
-npm run build:flatpak
 ```
 
 Build artifacts go to `dist/`.
@@ -115,23 +83,11 @@ rm WhatsLNX-*.AppImage
 rm -rf ~/.config/whatslnx   # App settings and session data
 ```
 
-### Snap
-
-```bash
-snap remove whatslnx
-```
-
 ### DEB
 
 ```bash
 sudo dpkg --remove whatslnx
 # Or: sudo apt-get remove whatslnx
-```
-
-### Flatpak
-
-```bash
-flatpak uninstall io.github.kmmuntasir.WhatsLNX
 ```
 
 ### Remove shared data (all formats)
@@ -193,7 +149,7 @@ Clicking these links in any application will open WhatsLNX and navigate to the c
 | Deep link support | `whatsapp://` | No | No | No | N/A |
 | Session persistence | Yes | Yes | Yes | Yes | Browser-dependent |
 | Auto-update | Yes | No | No | No | N/A |
-| Package formats | AppImage, Snap, DEB, Flatpak | AppImage, DEB, Snap | Snap, AppImage, DEB | DEB, Flatpak | N/A |
+| Package formats | AppImage, DEB | AppImage, DEB, Snap | Snap, AppImage, DEB | DEB, Flatpak | N/A |
 
 ## Supported Platforms
 

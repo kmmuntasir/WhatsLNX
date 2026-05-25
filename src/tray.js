@@ -159,10 +159,6 @@ function getIconPath() {
     path.join(__dirname, '..', 'assets', 'icons', '512x512.png'),
     path.join(__dirname, '..', 'assets', 'icons', 'icon.png'),
   ];
-  // Snap installs the icon to meta/gui — use absolute path as fallback
-  if (process.env.SNAP) {
-    possiblePaths.unshift(path.join(process.env.SNAP, 'meta', 'gui', 'icon.png'));
-  }
   for (const p of possiblePaths) {
     try {
       const fs = require('fs');

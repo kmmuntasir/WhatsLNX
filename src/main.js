@@ -1,5 +1,4 @@
-// Set ELECTRON_DISABLE_SANDBOX before requiring electron — needed for snap
-// where no shell wrapper can pass --no-sandbox as CLI arg to child processes
+// Set ELECTRON_DISABLE_SANDBOX before requiring electron
 if (process.platform === 'linux') {
   process.env.ELECTRON_DISABLE_SANDBOX = '1';
 }

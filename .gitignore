@@ -3,7 +3,6 @@ dist/
 out/
 *.AppImage
 *.deb
-*.snap
 .DS_Store
 Thumbs.db
 *.log
