@@ -106,6 +106,40 @@ npm run build:flatpak
 
 Build artifacts go to `dist/`.
 
+## Uninstallation
+
+### AppImage
+
+```bash
+rm WhatsLNX-*.AppImage
+rm -rf ~/.config/whatslnx   # App settings and session data
+```
+
+### Snap
+
+```bash
+snap remove whatslnx
+```
+
+### DEB
+
+```bash
+sudo dpkg --remove whatslnx
+# Or: sudo apt-get remove whatslnx
+```
+
+### Flatpak
+
+```bash
+flatpak uninstall io.github.kmmuntasir.WhatsLNX
+```
+
+### Remove shared data (all formats)
+
+```bash
+rm -rf ~/.config/whatslnx    # App settings
+```
+
 ## Configuration
 
 All settings are accessible via the **tray icon context menu** → **Settings**.
