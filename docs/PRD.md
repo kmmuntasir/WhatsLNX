@@ -43,7 +43,7 @@
 
 | Priority | Distribution | Package Format |
 |----------|-------------|----------------|
-| **Primary** | Ubuntu 24.04 LTS, Ubuntu 26.04 LTS | DEB, Snap, AppImage |
+| **Primary** | Ubuntu 24.04 LTS, Ubuntu 26.04 LTS | DEB, AppImage |
 | **Primary** | Linux Mint 21.x/22.x | DEB, AppImage |
 | **Primary** | Elementary OS 7/8 | DEB, AppImage |
 | **Primary** | Debian 12 (Bookworm), Debian 13 (Trixie) | DEB, AppImage |
@@ -72,7 +72,7 @@ Modern Linux distributions (Ubuntu 22.04+, Fedora 35+) default to Wayland. Exist
 
 ### 2.2 WebRTC Failures
 
-Audio and video calling either does not work at all or fails due to improperly sandboxed camera/microphone access, especially under Snap confinement. Users report having to run manual `snap connect` commands to grant permissions.
+Audio and video calling either does not work at all or fails due to improperly sandboxed camera/microphone access, especially under restrictive packaging formats. Users report having to run manual permission commands to grant access.
 
 ### 2.3 Poor Desktop Integration
 
@@ -90,7 +90,7 @@ Text rendering does not match the user's system font configuration, producing a 
 
 WhatsLNX addresses every issue above by:
 - Programmatically appending Wayland flags before app initialization.
-- Auto-granting media permissions and pre-connecting Snap sandbox plugs.
+- Auto-granting media permissions.
 - Routing all file operations through xdg-desktop-portal.
 - Passing through OS theme state so WhatsApp Web's built-in `prefers-color-scheme` detection works correctly.
 - Providing user-configurable font settings (Serif, Sans-Serif, Monospace) via a non-intrusive settings panel.
@@ -120,7 +120,7 @@ WhatsLNX addresses every issue above by:
 | **Language** | JavaScript / TypeScript | Node.js 24+ |
 | **Build Tool** | electron-builder | Latest stable |
 | **State Persistence** | electron-store | Latest stable |
-| **Package Formats** | AppImage, Snap, DEB | — |
+| **Package Formats** | AppImage, DEB | — |
 | **CI/CD** | GitHub Actions | — |
 
 ### 4.2 Architecture Layers
@@ -200,40 +200,8 @@ WhatsLNX addresses every issue above by:
 - Denied permissions: all others (e.g., `persistent-storage`, `midi`).
 - Permission decisions must be logged for debugging purposes.
 
-#### FR-2.2: Hardware Access Through Sandbox
+#### FR-2.2: Hardware Access
 - **AppImage**: Must access camera/microphone through standard OS device paths. No sandbox restrictions.
-- **Snap**: Must declare and auto-connect the following plugs in `snapcraft.yaml`:
-  ```yaml
-  plugs:
-    audio-playback:
-    audio-record:
-    browser-support:
-    camera:
-    desktop:
-    desktop-legacy:
-    hardware-observe:
-    home:
-    mount-observe:
-    network:
-    network-bind:
-    network-observe:
-    network-status:
-    opengl:
-    removable-media:
-    screen-inhibit-control:
-    unity7:
-    wayland:
-    x11:
-  ```
-- Content plugs (for theme/icon/sound integration):
-  ```yaml
-  plugs:
-    gtk-2-themes:
-    gtk-3-themes:
-    icon-themes:
-    sound-themes:
-  ```
-- Auto-connection must be requested via Snap store declaration so users do not need manual `snap connect` commands.
 - **DEB**: No sandbox; hardware access works by default. Must verify udev rules do not block camera/mic access.
 
 #### FR-2.3: WebRTC Compatibility
@@ -416,46 +384,7 @@ WhatsLNX addresses every issue above by:
 - **Auto-update**: Must support electron-updater for AppImage releases via GitHub Releases.
 - **Size target**: ≤ 80 MB.
 
-### 8.2 Snap Package
-
-- **Purpose**: Ubuntu Software Center distribution with sandboxed permissions.
-- **Configuration**: electron-builder `linux.target: "snap"`.
-- **Required plugs** (must be auto-connected):
-  ```yaml
-  plugs:
-    audio-playback:
-    audio-record:
-    browser-support:
-    camera:
-    desktop:
-    desktop-legacy:
-    hardware-observe:
-    home:
-    mount-observe:
-    network:
-    network-bind:
-    network-observe:
-    network-status:
-    opengl:
-    removable-media:
-    screen-inhibit-control:
-    unity7:
-    wayland:
-    x11:
-  ```
-- Content plugs for theme/icon/sound integration:
-  ```yaml
-  plugs:
-    gtk-2-themes:
-    gtk-3-themes:
-    icon-themes:
-    sound-themes:
-  ```
-- **Auto-connection**: Must submit a snap declaration to the Snap Store to auto-connect `camera` and `audio-record` plugs. Without this, users would need to run `snap connect whatslnx:camera` manually.
-- **Confinement**: `strict` (default for Snap Store). Must not use `devmode` or `classic`.
-- **Size target**: ≤ 100 MB.
-
-### 8.3 Debian Package (.deb)
+### 8.2 Debian Package (.deb)
 
 - **Purpose**: Native integration on Ubuntu/Debian/Linux Mint/Elementary OS.
 - **Configuration**: electron-builder `linux.target: "deb"`.
@@ -463,7 +392,7 @@ WhatsLNX addresses every issue above by:
 - **Categories**: `Network;InstantMessaging;Chat;`.
 - **Size target**: ≤ 70 MB.
 
-### 8.4 Application Metadata
+### 8.3 Application Metadata
 
 All packages must include:
 - **AppStream metadata** (`whatslnx.appdata.xml`): For software center discoverability.
@@ -471,10 +400,9 @@ All packages must include:
 - **Application icon**: SVG and PNG formats in standard sizes (16, 24, 32, 48, 64, 128, 256, 512).
 - **MIME types**: `x-scheme-handler/whatsapp` (mandatory — for `whatsapp://` deep link handling).
 
-### 8.5 Code Signing
+### 8.4 Code Signing
 
 - **AppImage**: Optional but recommended. Use GPG signing.
-- **Snap**: Snap Store handles signing.
 - **DEB**: Optional. Use `dpkg-sig` if signing.
 
 ---
@@ -526,12 +454,12 @@ No custom splash screen is required. WhatsApp Web provides its own loading indic
 | WhatsApp Web XSS could escape the wrapper | `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true` |
 | Malicious redirect to phishing site | Validate all navigations against `web.whatsapp.com` whitelist |
 | Credential theft by the wrapper | The wrapper does NOT read, store, or transmit WhatsApp credentials. Session data stays in Electron's standard `userData` directory. |
-| Tampered packages | GPG-sign AppImage, publish Snap through verified store account, publish DEB via GitHub Releases with checksums |
+| Tampered packages | GPG-sign AppImage, publish DEB via GitHub Releases with checksums |
 | Supply chain attacks in dependencies | Pin all dependency versions, use `npm audit` in CI, review lockfile changes |
 
 ### 10.2 Data Handling
 
-- **Cookies/Local Storage**: Stored in `~/.config/whatslnx/` (or Snap's equivalent path). Never exported or transmitted.
+- **Cookies/Local Storage**: Stored in `~/.config/whatslnx/`. Never exported or transmitted.
 - **User preferences**: Stored via `electron-store` in the same `userData` directory. Not encrypted (theme preference is not sensitive).
 - **Cache**: Stored in standard Electron cache directory. Cleared on uninstall.
 - **No telemetry**: WhatsLNX must NOT collect or transmit any usage data, analytics, or crash reports.
@@ -568,17 +496,16 @@ No custom splash screen is required. WhatsApp Web provides its own loading indic
 
 ### 11.2 Per-Package Testing
 
-| Test Case | AppImage | Snap | DEB |
-|-----------|:---:|:---:|:---:|
-| Clean install | ☐ | ☐ | ☐ |
-| Clean uninstall (no leftover files) | ☐ | ☐ | ☐ |
-| Upgrade from previous version | ☐ | ☐ | ☐ |
-| Camera/mic work without manual config | ☐ | ☐ | ☐ |
-| Appears in application menu | ☐ | ☐ | ☐ |
-| Appears in GNOME Software / KDE Discover | — | ☐ | — |
-| `whatsapp://` deep link registered | ☐ | ☐ | ☐ |
-| Drag-and-drop from file manager | ☐ | ☐ | ☐ |
-| Removable media access for file transfers | ☐ | ☐ | ☐ |
+| Test Case | AppImage | DEB |
+|-----------|:---:|:---:|
+| Clean install | ☐ | ☐ |
+| Clean uninstall (no leftover files) | ☐ | ☐ |
+| Upgrade from previous version | ☐ | ☐ |
+| Camera/mic work without manual config | ☐ | ☐ |
+| Appears in application menu | ☐ | ☐ |
+| `whatsapp://` deep link registered | ☐ | ☐ |
+| Drag-and-drop from file manager | ☐ | ☐ |
+| Removable media access for file transfers | ☐ | ☐ |
 
 ### 11.3 Automated Testing
 
@@ -588,7 +515,7 @@ No custom splash screen is required. WhatsApp Web provides its own loading indic
   1. `npm ci`
   2. `npm test` (unit + integration)
   3. `npm run lint`
-  4. `npm run build:linux` (all three package formats)
+  4. `npm run build` (all package formats)
   5. Upload build artifacts
 
 ---
@@ -623,7 +550,6 @@ No custom splash screen is required. WhatsApp Web provides its own loading indic
 - [ ] Drag-and-drop file support
 - [ ] Unread badge count in tray/page title
 - [ ] Settings window with font configuration (Serif, Sans-Serif, Monospace)
-- [ ] Snap package with auto-connected plugs
 - [ ] DEB package
 
 ### Phase 3: Polish & Distribution (v1.0.0)
@@ -635,7 +561,6 @@ No custom splash screen is required. WhatsApp Web provides its own loading indic
 - [ ] AppStream metadata
 - [ ] Application icon (all sizes)
 - [ ] Auto-update support (AppImage)
-- [ ] Published to Snap Store
 - [ ] Published to GitHub Releases
 - [ ] Complete test matrix (all cells checked)
 - [ ] README with installation instructions
@@ -659,7 +584,7 @@ No custom splash screen is required. WhatsApp Web provides its own loading indic
 | Audio/video call success rate | ≥ 95% on tested configurations |
 | Wayland crash rate | Zero segfaults on GNOME/KDE Wayland |
 | Theme sync latency | ≤ 500ms from OS theme change to visual update |
-| Snap permission issues | Zero manual `snap connect` commands needed |
+| Snap permission issues | Zero manual permission commands needed |
 | User reports of "non-native feel" | Minimal (subjective, tracked via GitHub issues) |
 
 ---
@@ -670,7 +595,7 @@ No custom splash screen is required. WhatsApp Web provides its own loading indic
 |------|----------|-------------|------------|
 | WhatsApp Web blocks Electron user agents | High | Medium | User-Agent spoofing mimics standard Chrome. Monitor and update UA string with each release. |
 | WhatsApp Web stops supporting `prefers-color-scheme` for theme detection | Medium | Low | Fall back to `nativeTheme.themeSource` override + DOM class injection as documented in OIR-2.2. |
-| Snap Store rejects auto-connect declaration for camera/mic | High | Low | Provide clear documentation for manual `snap connect` as fallback. Offer AppImage as alternative. |
+| Snap Store rejects auto-connect declaration for camera/mic | High | Low | Snap support deferred to future release. AppImage and DEB available as alternatives. |
 | Electron security vulnerability | High | Low | Pin to latest stable Electron. Use GitHub Dependabot for automated security updates. |
 | GNOME removes tray icon support entirely | Medium | Medium | Already requires AppIndicator extension. Document this requirement. Consider alternative approaches (e.g., GNOME Extension). |
 | WhatsApp Web changes URL structure | Medium | Low | Make URL configurable. Monitor for changes. |
@@ -694,10 +619,10 @@ No custom splash screen is required. WhatsApp Web provides its own loading indic
 | Drag-and-drop files | Yes | Unknown | Unknown | Unknown | Unknown | Unknown | Unknown | Yes (browser) |
 | Font configuration | Yes (3 families) | No | No | No | No | No | No | No |
 | Deep link support | Yes (`whatsapp://`) | No | No | No | Unknown | Unknown | Unknown | N/A |
-| Snap auto-connect | Planned | Not configured | Yes | N/A | Unknown | Unknown | Unknown | N/A |
+| Snap auto-connect | Deferred | Not configured | Yes | N/A | Unknown | Unknown | Unknown | N/A |
 | Session persistence | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Browser-dependent |
 | Auto-update | Yes | No | No | No | Unknown | Unknown | Unknown | N/A |
-| Package formats | AppImage, Snap, DEB | AppImage, DEB, Snap | Snap, AppImage, DEB | DEB, Flatpak | Snap | Unknown | Unknown | N/A |
+| Package formats | AppImage, DEB | AppImage, DEB, Snap | Snap, AppImage, DEB | DEB, Flatpak | Snap | Unknown | Unknown | N/A |
 | Spell check | System | Unknown | Yes | Unknown | Unknown | Unknown | Unknown | Browser-dependent |
 | Custom CSS theming | Planned | No | No | No | No | No | No | No |
 
@@ -742,47 +667,12 @@ No custom splash screen is required. WhatsApp Web provides its own loading indic
 | `--enable-features=WaylandWindowDecorations` | Native window decorations on Wayland |
 | `--enable-features=WebRTCPipeWireCapturer` | Screen sharing via PipeWire on Wayland |
 
-### Snap Interfaces Required
-
-| Interface | Purpose | Auto-connect |
-|-----------|---------|:---:|
-| `audio-playback` | Audio playback for notifications and calls | Yes |
-| `audio-record` | Microphone access for voice calls | Yes (needs store declaration) |
-| `browser-support` | Chromium browser support | Yes |
-| `camera` | Webcam access for video calls | Yes (needs store declaration) |
-| `desktop` | Desktop integration | Yes |
-| `desktop-legacy` | Legacy desktop integration (X11) | Yes |
-| `hardware-observe` | Hardware detection for device enumeration | Yes |
-| `home` | Access to home directory for downloads/settings | Yes |
-| `mount-observe` | Observe mount points for removable media | Yes |
-| `network` | Internet access for WhatsApp Web | Yes |
-| `network-bind` | Network binding for local services | Yes |
-| `network-observe` | Network state observation | Yes |
-| `network-status` | Network connectivity status | Yes |
-| `opengl` | Hardware acceleration | Yes |
-| `removable-media` | Access USB drives and SD cards for file transfers | Yes |
-| `screen-inhibit-control` | Prevent screen sleep during video calls | Yes |
-| `unity7` | Ubuntu Unity desktop integration | Yes |
-| `wayland` | Wayland compositor access | Yes |
-| `x11` | X11 fallback | Yes |
-
-### Snap Content Plugs
-
-| Content Plug | Purpose | Slot Source |
-|-------------|---------|-------------|
-| `gtk-2-themes` | GTK2 theme integration | `gtk-common-themes` |
-| `gtk-3-themes` | GTK3 theme integration | `gtk-common-themes` |
-| `icon-themes` | System icon theme access | `gtk-common-themes` |
-| `sound-themes` | System sound theme access | `gtk-common-themes` |
-
 ### Sources
 
 - [Electron 35.0.0 Release Notes](https://electronjs.org/blog/electron-35-0)
 - [Electron Wayland Support](https://electronjs.org/blog/tech-talk-wayland)
 - [Electron Dark Mode Tutorial](https://electronjs.org/docs/latest/tutorial/dark-mode)
 - [Electron nativeTheme API](https://electronjs.org/docs/latest/api/native-theme)
-- [Electron Snapcraft Guide](https://electronjs.org/docs/latest/tutorial/snapcraft)
-- [electron-builder Snap Documentation](https://www.electron.build/snap.html)
 - [WebRTC Wayland Screen Sharing (PipeWire)](https://jgrulich.cz/2022/02/16/webrtc-journey-to-make-wayland-screen-sharing-enabled-by-default/)
 - [xdg-desktop-portal Documentation](https://flatpak.github.io/xdg-desktop-portal/)
 - [Electron Issue #2911: Native File Picker](https://github.com/electron/electron/issues/2911)
