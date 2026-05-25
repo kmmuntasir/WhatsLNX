@@ -1,3 +1,37 @@
+// --- CLI argument handling (before Electron loads) ---
+const cliArgs = process.argv.slice(1);
+const fs = require('fs');
+const cliPath = require('path');
+
+if (cliArgs.includes('--version') || cliArgs.includes('-v')) {
+  const versionFile = cliPath.join(__dirname, '..', 'VERSION');
+  let version = 'unknown';
+  try {
+    version = fs.readFileSync(versionFile, 'utf8').trim();
+  } catch {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(cliPath.join(__dirname, '..', 'package.json'), 'utf8'));
+      version = pkg.version || version;
+    } catch {}
+  }
+  console.log(`WhatsLNX v${version}`);
+  process.exit(0);
+}
+
+if (cliArgs.includes('--help') || cliArgs.includes('-h')) {
+  console.log(`Usage: whatslnx [options] [whatsapp://URI]
+
+Options:
+  -v, --version    Print version and exit
+  -h, --help       Print this help message and exit
+
+Examples:
+  whatslnx                    Launch WhatsLNX
+  whatslnx --version          Show version
+  whatslnx whatsapp://send    Open WhatsApp with deep link`);
+  process.exit(0);
+}
+
 // Set ELECTRON_DISABLE_SANDBOX before requiring electron
 if (process.platform === 'linux') {
   process.env.ELECTRON_DISABLE_SANDBOX = '1';
