@@ -75,14 +75,40 @@ ipcRenderer.on('reset-fonts', () => {
 });
 
 // --- Intercept WhatsApp Web notifications ---
-window.addEventListener('DOMContentLoaded', () => {
-  window.Notification = function(title, options = {}) {
+// Apply immediately (before page JS runs) so WA Web sees our override
+const _OriginalNotification = window.Notification;
+
+window.Notification = function (title, options = {}) {
+  try {
     ipcRenderer.send('notification', {
       title: title || 'WhatsLNX',
       body: options.body || '',
-      icon: options.icon || '',
+      iconUrl: options.icon || '',
     });
+  } catch { /* IPC may fail during shutdown */ }
+
+  // Return a Notification-like object so WA Web doesn't break
+  const fake = { close() {}, onclick: null, onerror: null };
+  return fake;
+};
+Object.defineProperty(window.Notification, 'permission', { get: () => 'granted', configurable: true });
+window.Notification.requestPermission = () => Promise.resolve('granted');
+if (_OriginalNotification) {
+  window.Notification.prototype = _OriginalNotification.prototype;
+}
+
+// --- Intercept Service Worker showNotification (page-context calls) ---
+if ('ServiceWorkerRegistration' in window && ServiceWorkerRegistration.prototype.showNotification) {
+  const _origShow = ServiceWorkerRegistration.prototype.showNotification;
+  ServiceWorkerRegistration.prototype.showNotification = function (title, options = {}) {
+    try {
+      ipcRenderer.send('notification', {
+        title: title || 'WhatsLNX',
+        body: options.body || '',
+        iconUrl: options.icon || '',
+      });
+    } catch { /* ignore */ }
+    // Also call original so Electron's native handling works
+    return _origShow.call(this, title, options);
   };
-  Object.defineProperty(window.Notification, 'permission', { get: () => 'granted' });
-  window.Notification.requestPermission = () => Promise.resolve('granted');
-});
+}
