@@ -14,26 +14,45 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check if version tag already exists
+        id: version-check
+        run: |
+          VERSION="v$(jq -r .version package.json)"
+          if git tag -l "$VERSION" | grep -q .; then
+            echo "new_version=false" >> "$GITHUB_OUTPUT"
+            echo "Tag $VERSION already exists — skipping release"
+          else
+            echo "new_version=true" >> "$GITHUB_OUTPUT"
+            echo "Tag $VERSION does not exist — proceeding with release"
+          fi
 
       - uses: actions/setup-node@v6
+        if: steps.version-check.outputs.new_version == 'true'
         with:
           node-version: 24
           cache: npm
 
       - run: npm ci
+        if: steps.version-check.outputs.new_version == 'true'
 
       - name: Build and publish to GitHub Releases
+        if: steps.version-check.outputs.new_version == 'true'
         run: npm run build -- --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Import GPG Key
+        if: steps.version-check.outputs.new_version == 'true'
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Checkout gh-pages branch
+        if: steps.version-check.outputs.new_version == 'true'
         uses: actions/checkout@v6
         with:
           ref: gh-pages
@@ -41,6 +60,7 @@ jobs:
         continue-on-error: true
 
       - name: Build APT repository
+        if: steps.version-check.outputs.new_version == 'true'
         run: |
           mkdir -p apt-repo/pool/main
           mkdir -p apt-repo/dists/stable/main/binary-amd64
@@ -65,6 +85,7 @@ jobs:
               --clearsign --output InRelease Release
 
       - name: Deploy to GitHub Pages
+        if: steps.version-check.outputs.new_version == 'true'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
