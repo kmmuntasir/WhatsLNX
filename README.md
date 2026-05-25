@@ -18,7 +18,7 @@ WhatsLNX wraps [WhatsApp Web](https://web.whatsapp.com) inside a tailored Electr
 - **Deep Links** — Handles `whatsapp://` URI scheme system-wide
 - **Session Persistence** — Stay logged in between app restarts
 - **Single Instance** — Prevents duplicate windows and session corruption
-- **Auto-Update** — AppImage releases update automatically (via GitHub Releases)
+- **Auto-Update** — AppImage updates automatically (via GitHub Releases); DEB updates via `apt upgrade`
 
 ## Installation
 
@@ -39,13 +39,43 @@ chmod +x WhatsLNX-*.AppImage
 
 ### DEB (Ubuntu/Debian/Linux Mint)
 
-```bash
-# Download the latest .deb
-wget https://github.com/kmmuntasir/WhatsLNX/releases/latest/download/whatslnx_*.amd64.deb
+**One-time setup:**
 
-# Install
-sudo dpkg -i whatslnx_*.amd64.deb
-sudo apt-get install -f  # Fix missing dependencies
+```bash
+# Add the repository signing key
+curl -fsSL https://kmmuntasir.github.io/WhatsLNX/whatslnx-archive-keyring.gpg \
+  | sudo gpg --dearmor -o /usr/share/keyrings/whatslnx-archive-keyring.gpg
+
+# Add the repository
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/whatslnx-archive-keyring.gpg] \
+  https://kmmuntasir.github.io/WhatsLNX stable main" \
+  | sudo tee /etc/apt/sources.list.d/whatslnx.list
+
+# Update package index
+sudo apt update
+```
+
+**Install:**
+
+```bash
+sudo apt install whatslnx
+```
+
+**Upgrade (when new versions are published):**
+
+```bash
+sudo apt update && sudo apt upgrade whatslnx
+```
+
+**Uninstall:**
+
+```bash
+sudo apt remove whatslnx
+
+# Optional: remove the repository
+sudo rm /etc/apt/sources.list.d/whatslnx.list
+sudo rm /usr/share/keyrings/whatslnx-archive-keyring.gpg
+sudo apt update
 ```
 
 ## Building from Source
@@ -86,8 +116,7 @@ rm -rf ~/.config/whatslnx   # App settings and session data
 ### DEB
 
 ```bash
-sudo dpkg --remove whatslnx
-# Or: sudo apt-get remove whatslnx
+sudo apt remove whatslnx
 ```
 
 ### Remove shared data (all formats)
