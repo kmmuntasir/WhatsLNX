@@ -4,7 +4,7 @@ if (process.platform === 'linux') {
   process.env.ELECTRON_DISABLE_SANDBOX = '1';
 }
 
-const { app, BrowserWindow, session, shell, nativeTheme, dialog, ipcMain, desktopCapturer } = require('electron');
+const { app, BrowserWindow, session, shell, nativeTheme, dialog, ipcMain, desktopCapturer, screen } = require('electron');
 const path = require('path');
 const { createTray } = require('./tray');
 const { showNativeNotification } = require('./notifications');
@@ -165,9 +165,21 @@ async function init() {
   initUpdater();
 }
 
+function clampPosition(position, bounds) {
+  if (position.x == null || position.y == null) return position;
+  const displays = screen.getAllDisplays();
+  const visible = displays.some(d => {
+    const { x, y, width, height } = d.workArea;
+    return position.x >= x && position.x < x + width && position.y >= y && position.y < y + height;
+  });
+  if (visible) return position;
+  const primary = screen.getPrimaryDisplay().workArea;
+  return { x: primary.x + 50, y: primary.y + 50 };
+}
+
 function createMainWindow() {
   const bounds = store.get('windowBounds');
-  const position = store.get('windowPosition');
+  const position = clampPosition(store.get('windowPosition'), bounds);
   const isMaximized = store.get('isMaximized', false);
 
   mainWindow = new BrowserWindow({
@@ -275,5 +287,23 @@ app.on('before-quit', () => {
 app.on('activate', () => {
   if (mainWindow) {
     mainWindow.show();
+  }
+});
+
+// --- GPU / renderer crash recovery ---
+app.on('render-process-gone', (_event, webContents, details) => {
+  console.error('[crash] Renderer gone:', details.reason);
+  if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents === webContents) {
+    mainWindow.destroy();
+    mainWindow = null;
+    createMainWindow();
+  }
+});
+
+app.on('child-process-gone', (_event, details) => {
+  if (details.type === 'GPU') {
+    console.error('[crash] GPU process gone:', details.reason);
+    app.relaunch();
+    app.exit(0);
   }
 });
