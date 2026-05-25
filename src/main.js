@@ -38,6 +38,7 @@ if (process.defaultApp) {
 }
 
 // --- Single instance lock ---
+app.setAppUserModelId('io.github.kmmuntasir.WhatsLNX');
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
@@ -154,7 +155,10 @@ async function init() {
 
   // --- Notification interception ---
   ipcMain.on('notification', (_event, data) => {
-    showNativeNotification(data, mainWindow);
+    console.log('[notification] Received from renderer:', data?.title);
+    showNativeNotification(data, mainWindow).catch((e) => {
+      console.error('[notification] showNativeNotification failed:', e);
+    });
   });
 
   // --- Auto-updater (AppImage only) ---
