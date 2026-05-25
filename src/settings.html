@@ -120,11 +120,11 @@
   </div>
 
   <script>
-    const { ipcRenderer } = require('electron');
+    const api = window.settingsApi;
 
     // --- Load system fonts ---
     async function loadFonts() {
-      const fonts = await ipcRenderer.invoke('get-system-fonts');
+      const fonts = await api.getSystemFonts();
       const allFonts = ['(default)', ...fonts];
 
       ['font-serif', 'font-sans', 'font-mono'].forEach(id => {
@@ -141,7 +141,7 @@
 
     // --- Load current settings ---
     async function loadSettings() {
-      const settings = await ipcRenderer.invoke('get-settings');
+      const settings = await api.getSettings();
       const { themeSource, fonts } = settings;
 
       // Theme
@@ -159,7 +159,7 @@
     // --- Theme change ---
     document.querySelectorAll('input[name="theme"]').forEach(radio => {
       radio.addEventListener('change', () => {
-        ipcRenderer.send('settings-theme', radio.value);
+        api.setTheme(radio.value);
       });
     });
 
@@ -174,7 +174,7 @@
 
     ['font-serif', 'font-sans', 'font-mono'].forEach(id => {
       document.getElementById(id).addEventListener('change', () => {
-        ipcRenderer.send('settings-fonts', getSelectedFonts());
+        api.setFonts(getSelectedFonts());
       });
     });
 
@@ -183,7 +183,7 @@
       document.getElementById('font-serif').value = '';
       document.getElementById('font-sans').value = '';
       document.getElementById('font-mono').value = '';
-      ipcRenderer.send('settings-fonts', null);
+      api.setFonts(null);
     });
 
     // --- Init ---
