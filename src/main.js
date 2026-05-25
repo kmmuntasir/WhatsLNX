@@ -12,7 +12,9 @@ if (cliArgs.includes('--version') || cliArgs.includes('-v')) {
     try {
       const pkg = JSON.parse(fs.readFileSync(cliPath.join(__dirname, '..', 'package.json'), 'utf8'));
       version = pkg.version || version;
-    } catch {}
+    } catch {
+      // version fallback to hardcoded default
+    }
   }
   console.log(`WhatsLNX v${version}`);
   process.exit(0);
