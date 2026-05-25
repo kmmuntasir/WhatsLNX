@@ -24,10 +24,10 @@ finish-args:
   - --env=ELECTRON_TRASH=gio
 
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.node22
+  - org.freedesktop.Sdk.Extension.node24
 
 build-options:
-  append-path: /usr/lib/sdk/node22/bin
+  append-path: /usr/lib/sdk/node24/bin
   env:
     NPM_CONFIG_LOGLEVEL: info
 
@@ -38,7 +38,7 @@ modules:
       env:
         XDG_CACHE_HOME: /run/build/whatslnx/flatpak-node/cache
         npm_config_cache: /run/build/whatslnx/flatpak-node/npm-cache
-        npm_config_nodedir: /usr/lib/sdk/node22
+        npm_config_nodedir: /usr/lib/sdk/node24
         npm_config_offline: 'true'
     subdir: main
     sources:
