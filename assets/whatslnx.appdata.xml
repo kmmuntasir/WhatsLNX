@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>com.whatslnx.app</id>
+  <id>io.github.kmmuntasir.WhatsLNX</id>
   <name>WhatsLNX</name>
   <summary>Unofficial WhatsApp desktop client for Linux</summary>
   <developer_name>Muntasir Billah Munna</developer_name>

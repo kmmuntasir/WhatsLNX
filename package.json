@@ -23,7 +23,8 @@
     "build:snap": "electron-builder --linux snap",
     "build:deb": "electron-builder --linux deb",
     "build:flatpak": "electron-builder --linux flatpak",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "test": "echo 'Info: no tests yet' && exit 0"
   },
   "dependencies": {
     "electron-store": "^11.0.2",
