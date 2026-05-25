@@ -6,6 +6,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   release:
@@ -20,7 +22,51 @@ jobs:
 
       - run: npm ci
 
-      - name: Build and publish
+      - name: Build and publish to GitHub Releases
         run: npm run build -- --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Import GPG Key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          path: gh-pages
+        continue-on-error: true
+
+      - name: Build APT repository
+        run: |
+          mkdir -p apt-repo/pool/main
+          mkdir -p apt-repo/dists/stable/main/binary-amd64
+
+          if [ -d gh-pages/pool/main ]; then
+            cp gh-pages/pool/main/*.deb apt-repo/pool/main/ 2>/dev/null || true
+          fi
+
+          cp whatslnx-archive-keyring.gpg apt-repo/
+          cp dist/*.deb apt-repo/pool/main/
+
+          cd apt-repo
+          dpkg-scanpackages --arch amd64 pool/ > dists/stable/main/binary-amd64/Packages
+          gzip -kf dists/stable/main/binary-amd64/Packages
+
+          cd dists/stable
+          apt-ftparchive release . > Release
+
+          gpg --default-key kmmuntasir@gmail.com \
+              --armor --detach-sign --sign --output Release.gpg Release
+          gpg --default-key kmmuntasir@gmail.com \
+              --clearsign --output InRelease Release
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./apt-repo
+          publish_branch: gh-pages
