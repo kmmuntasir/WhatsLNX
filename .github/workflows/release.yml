@@ -79,11 +79,10 @@ jobs:
           cd dists/stable
           apt-ftparchive release . > Release
 
-          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
-          gpg --batch --yes \
+          gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
               --default-key kmmuntasir@gmail.com \
               --armor --detach-sign --sign --output Release.gpg Release
-          gpg --batch --yes \
+          gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
               --default-key kmmuntasir@gmail.com \
               --clearsign --output InRelease Release
 
