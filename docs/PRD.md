@@ -117,7 +117,7 @@ WhatsLNX addresses every issue above by:
 |-----------|-----------|---------|
 | **Runtime** | Electron | Latest stable (currently 35.x+) |
 | **Renderer** | Chromium (bundled with Electron) | 134+ |
-| **Language** | JavaScript / TypeScript | Node.js 22+ |
+| **Language** | JavaScript / TypeScript | Node.js 24+ |
 | **Build Tool** | electron-builder | Latest stable |
 | **State Persistence** | electron-store | Latest stable |
 | **Package Formats** | AppImage, Snap, DEB | — |
