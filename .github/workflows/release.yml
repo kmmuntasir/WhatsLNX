@@ -51,6 +51,16 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
+      - name: Debug GPG state
+        if: steps.version-check.outputs.new_version == 'true'
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          echo "=== Secret length: ${#GPG_PASSPHRASE} ==="
+          gpg --list-secret-keys
+          cat ~/.gnupg/gpg-agent.conf 2>/dev/null || echo "no gpg-agent.conf"
+          cat ~/.gnupg/gpg.conf 2>/dev/null || echo "no gpg.conf"
+
       - name: Checkout gh-pages branch
         if: steps.version-check.outputs.new_version == 'true'
         uses: actions/checkout@v6
@@ -81,12 +91,10 @@ jobs:
           cd dists/stable
           apt-ftparchive release . > Release
 
-          echo "$GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback \
-              --passphrase-fd 0 \
+          gpg --batch --yes --pinentry-mode loopback \
               --default-key kmmuntasir@gmail.com \
               --armor --detach-sign --sign --output Release.gpg Release
-          echo "$GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback \
-              --passphrase-fd 0 \
+          gpg --batch --yes --pinentry-mode loopback \
               --default-key kmmuntasir@gmail.com \
               --clearsign --output InRelease Release
 
