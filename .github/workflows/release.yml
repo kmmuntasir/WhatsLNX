@@ -88,6 +88,7 @@ jobs:
 
           cd dists/stable
           apt-ftparchive release . > Release
+          printf 'Origin: WhatsLNX\nLabel: WhatsLNX APT Repository\nSuite: stable\nCodename: stable\n' | cat - Release > Release.tmp && mv Release.tmp Release
 
           echo "$GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback \
               --passphrase-fd 0 \
