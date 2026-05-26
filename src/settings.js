@@ -3,6 +3,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 let settingsWindow = null;
+let ipcRegistered = false;
 
 function getSystemFonts() {
   try {
@@ -56,8 +57,12 @@ function createSettingsWindow(mainWindow, store) {
   settingsWindow.on('close', () => {
     settingsWindow = null;
   });
+}
 
-  // --- IPC handlers for settings window ---
+function registerIpcHandlers(mainWindow, store) {
+  if (ipcRegistered) return;
+  ipcRegistered = true;
+
   ipcMain.handle('get-system-fonts', () => {
     return getSystemFonts();
   });
@@ -83,13 +88,11 @@ function createSettingsWindow(mainWindow, store) {
   ipcMain.on('settings-fonts', (_event, fonts) => {
     if (!fonts) {
       store.delete('fonts');
-      // Tell preload to reset fonts
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('reset-fonts');
       }
     } else {
       store.set('fonts', fonts);
-      // Tell preload to apply fonts
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('apply-fonts', fonts);
       }
@@ -97,4 +100,4 @@ function createSettingsWindow(mainWindow, store) {
   });
 }
 
-module.exports = { createSettingsWindow };
+module.exports = { createSettingsWindow, registerIpcHandlers };

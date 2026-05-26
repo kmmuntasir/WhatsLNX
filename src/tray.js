@@ -241,7 +241,7 @@ function updateIcon() {
 function updateContextMenu(mainWindow, store) {
   const isVisible = mainWindow.isVisible();
   const themeSource = store.get('themeSource', 'system');
-  const { createSettingsWindow } = require('./settings');
+  const { createSettingsWindow, registerIpcHandlers } = require('./settings');
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -252,7 +252,7 @@ function updateContextMenu(mainWindow, store) {
     },
     {
       label: 'Settings...',
-      click: () => { createSettingsWindow(mainWindow, store); },
+      click: () => { registerIpcHandlers(mainWindow, store); createSettingsWindow(mainWindow, store); },
     },
     {
       label: 'Reload',
