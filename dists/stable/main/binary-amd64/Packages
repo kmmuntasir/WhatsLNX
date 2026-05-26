@@ -1,0 +1,20 @@
+Package: whatslnx
+Version: 0.1.0
+Architecture: amd64
+Maintainer: Muntasir Billah Munna <kmmuntasir@gmail.com>
+Installed-Size: 312750
+Depends: libnotify4, libxtst6, libnss3, libxss1, libasound2
+Recommends: libappindicator3-1
+Filename: pool/main/whatslnx_0.1.0_amd64.deb
+Size: 95655056
+MD5sum: a612729b77d8d117cb6687a6fcfacaaf
+SHA1: a17fe5774438551aa66e35641abb5197bf27261c
+SHA256: d1e5bcace035a041d832bf16dd05ddde70e801474cb0fc205c9351c2c02a62df
+Section: default
+Priority: optional
+Homepage: https://github.com/kmmuntasir/WhatsLNX#readme
+Description:
+  A minimalist, high-performance unofficial WhatsApp desktop client for Linux
+License: GPL-3.0
+Vendor: Muntasir Billah Munna <kmmuntasir@gmail.com>
+
