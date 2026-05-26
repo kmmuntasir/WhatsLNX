@@ -6,10 +6,10 @@ Installed-Size: 312776
 Depends: libnotify4, libxtst6, libnss3, libxss1, libasound2
 Recommends: libappindicator3-1
 Filename: pool/main/whatslnx_0.1.0_amd64.deb
-Size: 95659784
-MD5sum: a746ab80c73140cb94cf9e1fbc4a0019
-SHA1: 37a8abcc5704c117a983ac35d528a5978540318d
-SHA256: f3197a60d78953c611c13ba5c9b28f3abb47a15de570a1b9ff6f78efc595626c
+Size: 95659504
+MD5sum: 93f12d625ad8d5ee774cb4a69125bcd0
+SHA1: 88e7aa91a7ba097305ba7998bedc8890c443f828
+SHA256: 0b3ce00b6b47e2c68cb97e697a9a1581633456f0c3b8122e528095e9f75e6c2d
 Section: default
 Priority: optional
 Homepage: https://github.com/kmmuntasir/WhatsLNX#readme
