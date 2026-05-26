@@ -191,6 +191,7 @@ function createTray(mainWindow, store) {
   };
 
   tray.on('click', () => {
+    if (mainWindow.isDestroyed()) return;
     if (mainWindow.isVisible()) {
       if (mainWindow.isFocused()) {
         mainWindow.hide();
@@ -239,6 +240,7 @@ function updateIcon() {
 }
 
 function updateContextMenu(mainWindow, store) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
   const isVisible = mainWindow.isVisible();
   const themeSource = store.get('themeSource', 'system');
   const { createSettingsWindow, registerIpcHandlers } = require('./settings');
