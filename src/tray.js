@@ -249,6 +249,7 @@ function updateContextMenu(mainWindow, store) {
     {
       label: isVisible ? 'Hide WhatsLNX' : 'Show WhatsLNX',
       click: () => {
+        if (mainWindow.isDestroyed()) return;
         if (isVisible) { mainWindow.hide(); } else { mainWindow.show(); mainWindow.focus(); }
       },
     },
@@ -258,7 +259,7 @@ function updateContextMenu(mainWindow, store) {
     },
     {
       label: 'Reload',
-      click: () => { mainWindow.webContents.reloadIgnoringCache(); },
+      click: () => { if (!mainWindow.isDestroyed()) mainWindow.webContents.reloadIgnoringCache(); },
     },
     { type: 'separator' },
     {
