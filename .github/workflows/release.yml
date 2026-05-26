@@ -77,6 +77,10 @@ jobs:
           cp assets/icons/32x32.png apt-repo/favicon-32x32.png
           cp assets/icons/16x16.png apt-repo/favicon-16x16.png
           cp logo.png apt-repo/logo.png
+          mkdir -p apt-repo/screenshots
+          cp assets/screenshots/desktop-screenshot.jpg apt-repo/screenshots/
+          cp assets/screenshots/settings-window.png apt-repo/screenshots/
+          cp assets/screenshots/tray-icon-with-badge.png apt-repo/screenshots/
 
           cd apt-repo
           dpkg-scanpackages --arch amd64 pool/ > dists/stable/main/binary-amd64/Packages

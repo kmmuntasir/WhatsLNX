@@ -1,47 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="system">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WhatsLNX — WhatsApp for Linux</title>
-  <meta name="description" content="A minimalist, high-performance unofficial WhatsApp desktop client for Linux with Wayland support, native notifications, and audio/video calling.">
+  <meta name="description" content="A minimalist, high-performance unofficial WhatsApp desktop client for Linux with Wayland support, native notifications, audio/video calling, and screen sharing.">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* Theme variables */
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --border-primary: #21262d;
+      --border-secondary: #30363d;
+      --text-primary: #f0f6fc;
+      --text-secondary: #e6edf3;
+      --text-muted: #c9d1d9;
+      --text-subtle: #8b949e;
+      --text-faint: #484f58;
+      --accent: #58a6ff;
+      --accent-bg: #1f6feb1a;
+      --green: #3fb950;
+      --green-bg: #23863633;
+      --green-btn: #238636;
+      --green-btn-hover: #2ea043;
+      --yellow: #d29922;
+      --hero-gradient-from: #161b22;
+      --hero-gradient-to: #0d1117;
+      --code-bg: #161b22;
+      --highlight-bg: #1f6feb1a;
+      --shadow-color: rgba(88,166,255,0.15);
+      --screenshot-border: #30363d;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f6f8fa;
+      --bg-tertiary: #e1e4e8;
+      --border-primary: #d0d7de;
+      --border-secondary: #afb8c1;
+      --text-primary: #1f2328;
+      --text-secondary: #1f2328;
+      --text-muted: #424a53;
+      --text-subtle: #656d76;
+      --text-faint: #8b949e;
+      --accent: #0969da;
+      --accent-bg: #0969da1a;
+      --green: #1a7f37;
+      --green-bg: #1a7f371a;
+      --green-btn: #1a7f37;
+      --green-btn-hover: #238636;
+      --yellow: #9a6700;
+      --hero-gradient-from: #f6f8fa;
+      --hero-gradient-to: #ffffff;
+      --code-bg: #f6f8fa;
+      --highlight-bg: #0969da1a;
+      --shadow-color: rgba(0,0,0,0.08);
+      --screenshot-border: #d0d7de;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      background: #0d1117;
-      color: #e6edf3;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
       line-height: 1.7;
+      transition: background 0.2s, color 0.2s;
     }
-    a { color: #58a6ff; text-decoration: none; }
+    a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-secondary);
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+      color: var(--text-subtle);
+      font-size: 1.1rem;
+      line-height: 1;
+      transition: background 0.15s;
+    }
+    .theme-toggle:hover { background: var(--bg-tertiary); }
 
     /* Hero */
     .hero {
       text-align: center;
       padding: 4rem 2rem 3rem;
-      background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
-      border-bottom: 1px solid #21262d;
+      background: linear-gradient(180deg, var(--hero-gradient-from) 0%, var(--hero-gradient-to) 100%);
+      border-bottom: 1px solid var(--border-primary);
     }
     .hero-logo {
       width: 96px;
       height: 96px;
       border-radius: 20px;
       margin-bottom: 1.5rem;
-      box-shadow: 0 8px 32px rgba(88,166,255,0.15);
+      box-shadow: 0 8px 32px var(--shadow-color);
     }
     .hero h1 {
       font-size: 2.5rem;
       font-weight: 700;
       margin-bottom: 0.5rem;
-      color: #f0f6fc;
+      color: var(--text-primary);
     }
     .hero p {
       font-size: 1.15rem;
-      color: #8b949e;
-      max-width: 540px;
+      color: var(--text-subtle);
+      max-width: 600px;
       margin: 0 auto 2rem;
     }
     .hero-buttons { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
@@ -53,10 +126,10 @@
       font-size: 0.95rem;
       transition: background 0.15s;
     }
-    .btn-primary { background: #238636; color: #fff; }
-    .btn-primary:hover { background: #2ea043; text-decoration: none; }
-    .btn-secondary { background: #21262d; color: #e6edf3; border: 1px solid #30363d; }
-    .btn-secondary:hover { background: #30363d; text-decoration: none; }
+    .btn-primary { background: var(--green-btn); color: #fff; }
+    .btn-primary:hover { background: var(--green-btn-hover); text-decoration: none; }
+    .btn-secondary { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border-secondary); }
+    .btn-secondary:hover { background: var(--border-secondary); text-decoration: none; }
 
     .badges {
       display: flex;
@@ -70,24 +143,51 @@
     /* Sections */
     .container { max-width: 900px; margin: 0 auto; padding: 0 2rem; }
     section { padding: 3rem 0; }
-    section + section { border-top: 1px solid #21262d; }
+    section + section { border-top: 1px solid var(--border-primary); }
 
     h2 {
       font-size: 1.5rem;
-      color: #f0f6fc;
+      color: var(--text-primary);
       margin-bottom: 1rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
     h2 .icon { font-size: 1.2rem; }
-    h3 { font-size: 1.1rem; color: #58a6ff; margin: 1.5rem 0 0.5rem; }
-    p { margin: 0.5rem 0; color: #c9d1d9; }
+    h3 { font-size: 1.1rem; color: var(--accent); margin: 1.5rem 0 0.5rem; }
+    p { margin: 0.5rem 0; color: var(--text-muted); }
+
+    /* Screenshots */
+    .screenshots {
+      text-align: center;
+      padding: 2rem 0;
+    }
+    .screenshots img {
+      border: 1px solid var(--screenshot-border);
+      border-radius: 8px;
+      max-width: 100%;
+      height: auto;
+      box-shadow: 0 4px 16px var(--shadow-color);
+    }
+    .screenshots .screenshot-main {
+      max-width: 700px;
+      margin-bottom: 1rem;
+    }
+    .screenshots-row {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .screenshots-row img {
+      height: 300px;
+      width: auto;
+    }
 
     /* Code blocks */
     pre {
-      background: #161b22;
-      border: 1px solid #30363d;
+      background: var(--code-bg);
+      border: 1px solid var(--border-secondary);
       border-radius: 6px;
       padding: 1rem 1.25rem;
       overflow-x: auto;
@@ -101,23 +201,23 @@
       top: 0.4rem;
       right: 0.6rem;
       font-size: 0.7rem;
-      color: #484f58;
+      color: var(--text-faint);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
     /* Tabs */
-    .tabs { display: flex; gap: 0; border-bottom: 1px solid #21262d; margin-bottom: 1rem; }
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border-primary); margin-bottom: 1rem; }
     .tab {
       padding: 0.6rem 1.25rem;
       cursor: pointer;
-      color: #8b949e;
+      color: var(--text-subtle);
       font-size: 0.9rem;
       border-bottom: 2px solid transparent;
       transition: color 0.15s, border-color 0.15s;
     }
-    .tab:hover { color: #e6edf3; }
-    .tab.active { color: #f0f6fc; border-bottom-color: #58a6ff; }
+    .tab:hover { color: var(--text-secondary); }
+    .tab.active { color: var(--text-primary); border-bottom-color: var(--accent); }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
@@ -128,17 +228,17 @@
       gap: 1rem;
     }
     .feature {
-      background: #161b22;
-      border: 1px solid #21262d;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
       border-radius: 8px;
       padding: 1.25rem;
     }
     .feature-title {
       font-weight: 600;
-      color: #f0f6fc;
+      color: var(--text-primary);
       margin-bottom: 0.25rem;
     }
-    .feature-desc { color: #8b949e; font-size: 0.9rem; }
+    .feature-desc { color: var(--text-subtle); font-size: 0.9rem; }
 
     /* Comparison table */
     .table-wrap { overflow-x: auto; }
@@ -151,28 +251,28 @@
     th, td {
       padding: 0.6rem 0.75rem;
       text-align: center;
-      border-bottom: 1px solid #21262d;
+      border-bottom: 1px solid var(--border-primary);
     }
-    th { color: #8b949e; font-weight: 600; }
+    th { color: var(--text-subtle); font-weight: 600; }
     th:first-child, td:first-child { text-align: left; }
-    td:first-child { color: #f0f6fc; font-weight: 500; }
-    .yes { color: #3fb950; }
-    .no { color: #484f58; }
-    .partial { color: #d29922; }
-    .highlight { background: #1f6feb1a; }
+    td:first-child { color: var(--text-primary); font-weight: 500; }
+    .yes { color: var(--green); }
+    .no { color: var(--text-faint); }
+    .partial { color: var(--yellow); }
+    .highlight { background: var(--highlight-bg); }
 
     /* Keyboard shortcuts */
     .shortcuts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 2rem; }
     .shortcut { display: flex; justify-content: space-between; padding: 0.4rem 0; }
-    .shortcut-action { color: #c9d1d9; }
+    .shortcut-action { color: var(--text-muted); }
     kbd {
-      background: #21262d;
-      border: 1px solid #30363d;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-secondary);
       border-radius: 4px;
       padding: 0.15rem 0.5rem;
       font-size: 0.8rem;
       font-family: inherit;
-      color: #e6edf3;
+      color: var(--text-secondary);
     }
 
     /* Platforms */
@@ -182,33 +282,33 @@
       gap: 0.75rem;
     }
     .platform-item {
-      background: #161b22;
-      border: 1px solid #21262d;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
       border-radius: 6px;
       padding: 0.75rem 1rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .platform-name { color: #f0f6fc; font-size: 0.9rem; }
+    .platform-name { color: var(--text-primary); font-size: 0.9rem; }
     .platform-status {
       font-size: 0.75rem;
       padding: 0.15rem 0.5rem;
       border-radius: 1rem;
     }
-    .platform-status.primary { background: #23863633; color: #3fb950; }
-    .platform-status.secondary { background: #1f6feb33; color: #58a6ff; }
+    .platform-status.primary { background: var(--green-bg); color: var(--green); }
+    .platform-status.secondary { background: var(--accent-bg); color: var(--accent); }
 
     /* Footer */
     footer {
       padding: 2rem;
       text-align: center;
-      border-top: 1px solid #21262d;
-      color: #484f58;
+      border-top: 1px solid var(--border-primary);
+      color: var(--text-faint);
       font-size: 0.85rem;
     }
-    footer a { color: #8b949e; margin: 0 0.5rem; }
-    footer a:hover { color: #58a6ff; }
+    footer a { color: var(--text-subtle); margin: 0 0.5rem; }
+    footer a:hover { color: var(--accent); }
 
     /* Responsive */
     @media (max-width: 600px) {
@@ -216,16 +316,20 @@
       .hero p { font-size: 1rem; }
       .shortcuts { grid-template-columns: 1fr; }
       .hero-logo { width: 72px; height: 72px; border-radius: 16px; }
+      .screenshots-row img { height: auto; max-width: 100%; }
     }
   </style>
 </head>
 <body>
 
+  <!-- Theme toggle -->
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">&#9790;</button>
+
   <!-- Hero -->
   <div class="hero">
     <img src="logo.png" alt="WhatsLNX" class="hero-logo">
     <h1>WhatsLNX</h1>
-    <p>A minimalist, high-performance unofficial WhatsApp desktop client for Linux with Wayland support, native notifications, and audio/video calling.</p>
+    <p>A minimalist, high-performance unofficial WhatsApp desktop client for Linux with Wayland support, native notifications, audio/video calling, and screen sharing.</p>
     <div class="hero-buttons">
       <a href="#install" class="btn btn-primary">Install Now</a>
       <a href="https://github.com/kmmuntasir/WhatsLNX" class="btn btn-secondary">View Source</a>
@@ -238,6 +342,15 @@
   </div>
 
   <div class="container">
+
+    <!-- Screenshots -->
+    <section class="screenshots" id="screenshots">
+      <img src="screenshots/desktop-screenshot.jpg" alt="WhatsLNX on Linux" class="screenshot-main">
+      <div class="screenshots-row">
+        <img src="screenshots/settings-window.png" alt="Settings window">
+        <img src="screenshots/tray-icon-with-badge.png" alt="Tray icon with unread badge">
+      </div>
+    </section>
 
     <!-- Features -->
     <section id="features">
@@ -367,7 +480,7 @@ rm -rf ~/.config/whatslnx</code></pre>
         <p>Build from source. Requires Node.js 24+ and npm.</p>
 
         <h3>Prerequisites</h3>
-        <ul style="margin: 0.5rem 0 0.5rem 1.5rem; color: #c9d1d9;">
+        <ul style="margin: 0.5rem 0 0.5rem 1.5rem; color: var(--text-muted);">
           <li>Node.js 24+ and npm</li>
           <li>Linux (Ubuntu 24.04+ recommended)</li>
         </ul>
@@ -482,13 +595,13 @@ whatsapp://send?text=Hello</code></pre>
         <div class="platform-item"><span class="platform-name">Fedora 40+</span><span class="platform-status secondary">AppImage</span></div>
         <div class="platform-item"><span class="platform-name">Arch / Manjaro</span><span class="platform-status secondary">AppImage</span></div>
       </div>
-      <p style="margin-top: 1rem; color: #8b949e; font-size: 0.9rem;">Tested on GNOME 46+ (Wayland/X11), KDE Plasma 6+ (Wayland/X11), XFCE 4.18+.</p>
+      <p style="margin-top: 1rem; color: var(--text-subtle); font-size: 0.9rem;">Tested on GNOME 46+ (Wayland/X11), KDE Plasma 6+ (Wayland/X11), XFCE 4.18+.</p>
     </section>
 
     <!-- Known Issues -->
     <section id="issues">
       <h2><span class="icon">&#128268;</span> Known Issues</h2>
-      <ul style="margin: 0.5rem 0 0.5rem 1.5rem; color: #c9d1d9;">
+      <ul style="margin: 0.5rem 0 0.5rem 1.5rem; color: var(--text-muted);">
         <li><strong>GNOME tray icons</strong> require the <a href="https://extensions.gnome.org/extension/615/appindicator-support/">AppIndicator</a> extension</li>
         <li><strong>Screen sharing on Wayland</strong> requires PipeWire and xdg-desktop-portal (pre-installed on most modern distros)</li>
         <li>WhatsApp Web is a third-party service &mdash; feature availability depends on Meta's deployment</li>
@@ -506,12 +619,40 @@ whatsapp://send?text=Hello</code></pre>
   </footer>
 
   <script>
+    // Tab switching
     function switchTab(e, id) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       e.target.classList.add('active');
       document.getElementById(id).classList.add('active');
     }
+
+    // Theme management
+    const THEMES = ['system', 'light', 'dark'];
+    const ICONS = { system: '☾', light: '☀', dark: '☾' };
+
+    function getStoredTheme() {
+      return localStorage.getItem('theme') || 'system';
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      const btn = document.querySelector('.theme-toggle');
+      if (btn) btn.textContent = ICONS[theme];
+    }
+
+    function toggleTheme() {
+      const current = getStoredTheme();
+      const next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
+      applyTheme(next);
+    }
+
+    // Respect system preference for initial load
+    (function() {
+      const stored = getStoredTheme();
+      applyTheme(stored);
+    })();
   </script>
 </body>
 </html>
