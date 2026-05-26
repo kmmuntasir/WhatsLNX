@@ -45,6 +45,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Update release body from CHANGELOG
+        if: steps.version-check.outputs.new_version == 'true'
+        run: |
+          VERSION="v$(jq -r .version package.json)"
+          # Extract section between current version header and next version header
+          BODY=$(sed -n "/^## \[${VERSION#v}\]/,/^## \[/{ /^## \[${VERSION#v}\]/d; /^## \[/d; p; }" CHANGELOG.md)
+          if [ -n "$BODY" ]; then
+            gh release edit "$VERSION" --notes "$BODY"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Import GPG Key
         if: steps.version-check.outputs.new_version == 'true'
         uses: crazy-max/ghaction-import-gpg@v7
