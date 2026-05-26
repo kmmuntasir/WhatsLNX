@@ -73,6 +73,7 @@ jobs:
 
           cp whatslnx-archive-keyring.gpg apt-repo/
           cp dist/*.deb apt-repo/pool/main/
+          cp pages/index.html apt-repo/
 
           cd apt-repo
           dpkg-scanpackages --arch amd64 pool/ > dists/stable/main/binary-amd64/Packages
