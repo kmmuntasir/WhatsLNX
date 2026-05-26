@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-25
 **Affected workflow:** `.github/workflows/release.yml` — "Build APT repository" step
-**Root cause:** RESOLVED — GPG 2.1+ ignores `--passphrase` flag unless passphrase is supplied via stdin (`--passphrase-fd 0`). See Attempt 7 below.
+**Root cause:** RESOLVED — Two issues: (1) `GPG_PASSPHRASE` secret was empty (length 0), causing all passphrase-passing attempts to fail. (2) GPG 2.1+ requires `--passphrase-fd 0` to read passphrase from stdin in batch mode. See Attempt 7 below.
 
 ---
 
@@ -285,4 +285,8 @@ Also removed workarounds from previous attempts:
 - Removed `gpgconf --reload gpg-agent`
 - Removed `--passphrase "$GPG_PASSPHRASE"` flag
 
-**Result:** Pending CI verification.
+**Result:** CI run 26436688375 — **SUCCESS.** All steps passed including GPG signing and GitHub Pages deploy.
+
+**Actual root cause was twofold:**
+1. `GPG_PASSPHRASE` secret was empty (length 0). Updated the secret to match the key's actual passphrase.
+2. GPG 2.1+ in batch mode requires `--passphrase-fd 0` to read from stdin, not the `--passphrase` flag.
