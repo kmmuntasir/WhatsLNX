@@ -5,6 +5,21 @@ All notable changes to WhatsLNX are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-05-27
+
+### Added
+
+- "Close button minimizes to tray" toggle in Settings (default: enabled). When disabled, the close button quits the app instead of hiding to tray.
+
+### Fixed
+
+- Tray context menu showed "Hide WhatsLNX" instead of "Show WhatsLNX" after close-to-tray. Context menu is now rebuilt on window show/hide events.
+- Settings window threw "Attempted to register a second handler" error on reopening. IPC handlers are now registered once.
+- Settings toggle for close-to-tray didn't respond to clicks. Fixed by wrapping toggle in `<label>`.
+- Settings window content was clipped and not scrollable. Changed `overflow: hidden` to `overflow-y: auto`.
+- App didn't quit when close-to-tray was disabled — window closed but tray stayed alive. Close handler now explicitly calls `app.quit()`.
+- "Object has been destroyed" crash when interacting with tray menu after window was destroyed. Added `isDestroyed()` guards.
+
 ## [0.2.0] - 2026-05-26
 
 ### Added
@@ -68,5 +83,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Standardized appId (`io.github.kmmuntasir.WhatsLNX`) across all configs
 - Settings window with `contextIsolation: true` and `contextBridge` (no `nodeIntegration`)
 
+[0.2.1]: https://github.com/kmmuntasir/WhatsLNX/releases/tag/v0.2.1
 [0.2.0]: https://github.com/kmmuntasir/WhatsLNX/releases/tag/v0.2.0
 [0.1.0]: https://github.com/kmmuntasir/WhatsLNX/releases/tag/v0.1.0
