@@ -3,106 +3,515 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WhatsLNX APT Repository</title>
+  <title>WhatsLNX — WhatsApp for Linux</title>
+  <meta name="description" content="A minimalist, high-performance unofficial WhatsApp desktop client for Linux with Wayland support, native notifications, and audio/video calling.">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
       background: #0d1117;
       color: #e6edf3;
-      line-height: 1.6;
-      padding: 2rem;
+      line-height: 1.7;
     }
-    .container { max-width: 720px; margin: 0 auto; }
-    h1 {
-      font-size: 1.8rem;
-      margin-bottom: 0.25rem;
+    a { color: #58a6ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 4rem 2rem 3rem;
+      background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+      border-bottom: 1px solid #21262d;
+    }
+    .hero-logo {
+      width: 96px;
+      height: 96px;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 32px rgba(88,166,255,0.15);
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #f0f6fc;
+    }
+    .hero p {
+      font-size: 1.15rem;
+      color: #8b949e;
+      max-width: 540px;
+      margin: 0 auto 2rem;
+    }
+    .hero-buttons { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-block;
+      padding: 0.65rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: background 0.15s;
+    }
+    .btn-primary { background: #238636; color: #fff; }
+    .btn-primary:hover { background: #2ea043; text-decoration: none; }
+    .btn-secondary { background: #21262d; color: #e6edf3; border: 1px solid #30363d; }
+    .btn-secondary:hover { background: #30363d; text-decoration: none; }
+
+    .badges {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .badges img { height: 22px; }
+
+    /* Sections */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 2rem; }
+    section { padding: 3rem 0; }
+    section + section { border-top: 1px solid #21262d; }
+
+    h2 {
+      font-size: 1.5rem;
+      color: #f0f6fc;
+      margin-bottom: 1rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
-    h1 a { color: #58a6ff; text-decoration: none; }
-    h1 a:hover { text-decoration: underline; }
-    .subtitle { color: #8b949e; margin-bottom: 2rem; }
-    h2 {
-      font-size: 1.2rem;
-      color: #58a6ff;
-      margin: 2rem 0 0.75rem;
-      padding-bottom: 0.25rem;
-      border-bottom: 1px solid #21262d;
-    }
+    h2 .icon { font-size: 1.2rem; }
+    h3 { font-size: 1.1rem; color: #58a6ff; margin: 1.5rem 0 0.5rem; }
+    p { margin: 0.5rem 0; color: #c9d1d9; }
+
+    /* Code blocks */
     pre {
       background: #161b22;
       border: 1px solid #30363d;
       border-radius: 6px;
-      padding: 1rem;
+      padding: 1rem 1.25rem;
       overflow-x: auto;
       font-size: 0.875rem;
-      margin: 0.5rem 0;
+      margin: 0.75rem 0;
+      position: relative;
     }
-    code { font-family: "SFMono-Regular", Consolas, monospace; }
-    p { margin: 0.5rem 0; }
-    a { color: #58a6ff; }
-    .badge {
-      display: inline-block;
+    code { font-family: "SFMono-Regular", Consolas, "Courier New", monospace; }
+    .code-label {
+      position: absolute;
+      top: 0.4rem;
+      right: 0.6rem;
+      font-size: 0.7rem;
+      color: #484f58;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid #21262d; margin-bottom: 1rem; }
+    .tab {
+      padding: 0.6rem 1.25rem;
+      cursor: pointer;
+      color: #8b949e;
+      font-size: 0.9rem;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab:hover { color: #e6edf3; }
+    .tab.active { color: #f0f6fc; border-bottom-color: #58a6ff; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Feature grid */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+    .feature {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+    .feature-title {
+      font-weight: 600;
+      color: #f0f6fc;
+      margin-bottom: 0.25rem;
+    }
+    .feature-desc { color: #8b949e; font-size: 0.9rem; }
+
+    /* Comparison table */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin: 0.75rem 0;
+    }
+    th, td {
+      padding: 0.6rem 0.75rem;
+      text-align: center;
+      border-bottom: 1px solid #21262d;
+    }
+    th { color: #8b949e; font-weight: 600; }
+    th:first-child, td:first-child { text-align: left; }
+    td:first-child { color: #f0f6fc; font-weight: 500; }
+    .yes { color: #3fb950; }
+    .no { color: #484f58; }
+    .partial { color: #d29922; }
+    .highlight { background: #1f6feb1a; }
+
+    /* Keyboard shortcuts */
+    .shortcuts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 2rem; }
+    .shortcut { display: flex; justify-content: space-between; padding: 0.4rem 0; }
+    .shortcut-action { color: #c9d1d9; }
+    kbd {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.8rem;
+      font-family: inherit;
+      color: #e6edf3;
+    }
+
+    /* Platforms */
+    .platforms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.75rem;
+    }
+    .platform-item {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .platform-name { color: #f0f6fc; font-size: 0.9rem; }
+    .platform-status {
+      font-size: 0.75rem;
       padding: 0.15rem 0.5rem;
       border-radius: 1rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: #1f6feb33;
-      color: #58a6ff;
-      margin-left: 0.5rem;
-      vertical-align: middle;
     }
-    .footer {
-      margin-top: 3rem;
-      padding-top: 1rem;
+    .platform-status.primary { background: #23863633; color: #3fb950; }
+    .platform-status.secondary { background: #1f6feb33; color: #58a6ff; }
+
+    /* Footer */
+    footer {
+      padding: 2rem;
+      text-align: center;
       border-top: 1px solid #21262d;
       color: #484f58;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
+    }
+    footer a { color: #8b949e; margin: 0 0.5rem; }
+    footer a:hover { color: #58a6ff; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 1.8rem; }
+      .hero p { font-size: 1rem; }
+      .shortcuts { grid-template-columns: 1fr; }
+      .hero-logo { width: 72px; height: 72px; border-radius: 16px; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1><a href="https://github.com/kmmuntasir/WhatsLNX">WhatsLNX</a> <span class="badge">APT Repository</span></h1>
-    <p class="subtitle">Unofficial WhatsApp desktop client for Linux &mdash; DEB packages for Ubuntu, Debian, and Linux Mint.</p>
 
-    <h2>One-time setup</h2>
-    <p>Add the repository signing key:</p>
-    <pre><code>curl -fsSL https://kmmuntasir.github.io/WhatsLNX/whatslnx-archive-keyring.gpg \
+  <!-- Hero -->
+  <div class="hero">
+    <img src="logo.png" alt="WhatsLNX" class="hero-logo">
+    <h1>WhatsLNX</h1>
+    <p>A minimalist, high-performance unofficial WhatsApp desktop client for Linux with Wayland support, native notifications, and audio/video calling.</p>
+    <div class="hero-buttons">
+      <a href="#install" class="btn btn-primary">Install Now</a>
+      <a href="https://github.com/kmmuntasir/WhatsLNX" class="btn btn-secondary">View Source</a>
+    </div>
+    <div class="badges">
+      <a href="https://github.com/kmmuntasir/WhatsLNX/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License"></a>
+      <a href="https://github.com/kmmuntasir/WhatsLNX/actions/workflows/ci.yml"><img src="https://github.com/kmmuntasir/WhatsLNX/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+      <a href="https://github.com/kmmuntasir/WhatsLNX/releases/latest"><img src="https://img.shields.io/github/v/release/kmmuntasir/WhatsLNX" alt="Release"></a>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- Features -->
+    <section id="features">
+      <h2><span class="icon">&#9889;</span> Features</h2>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-title">Wayland &amp; X11</div>
+          <div class="feature-desc">Auto-detected, no manual flags needed</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">Audio/Video Calling</div>
+          <div class="feature-desc">Automatic camera and microphone permissions</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">Native Notifications</div>
+          <div class="feature-desc">System notification bubbles via DBus</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">Native File Dialogs</div>
+          <div class="feature-desc">xdg-desktop-portal for uploads and downloads</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">Drag &amp; Drop</div>
+          <div class="feature-desc">Drop files from Nautilus, Dolphin, or Thunar directly into chat</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">Screen Sharing</div>
+          <div class="feature-desc">Share your screen during calls (Wayland + X11 via PipeWire)</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">Theme Sync</div>
+          <div class="feature-desc">Automatically follows your desktop's light/dark mode</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">Font Configuration</div>
+          <div class="feature-desc">Set Serif, Sans-Serif, and Monospace fonts via Settings</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">System Tray</div>
+          <div class="feature-desc">Tray icon with unread message count badge</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">Deep Links</div>
+          <div class="feature-desc">Handles <code>whatsapp://</code> URI scheme system-wide</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">Session Persistence</div>
+          <div class="feature-desc">Stay logged in between app restarts</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">Single Instance</div>
+          <div class="feature-desc">Prevents duplicate windows and session corruption</div>
+        </div>
+        <div class="feature">
+          <div class="feature-title">Auto-Update</div>
+          <div class="feature-desc">AppImage updates via GitHub Releases; DEB via <code>apt upgrade</code></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation -->
+    <section id="install">
+      <h2><span class="icon">&#128230;</span> Installation</h2>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(event, 'tab-deb')">DEB (Ubuntu/Debian)</div>
+        <div class="tab" onclick="switchTab(event, 'tab-appimage')">AppImage</div>
+        <div class="tab" onclick="switchTab(event, 'tab-source')">From Source</div>
+      </div>
+
+      <!-- DEB -->
+      <div id="tab-deb" class="tab-content active">
+        <p>Install and update WhatsLNX via APT on Ubuntu, Debian, Linux Mint, and Elementary OS.</p>
+
+        <h3>One-time setup</h3>
+        <p>Add the repository signing key:</p>
+        <pre><code><span class="code-label">shell</span>curl -fsSL https://kmmuntasir.github.io/WhatsLNX/whatslnx-archive-keyring.gpg \
   | sudo gpg --dearmor -o /usr/share/keyrings/whatslnx-archive-keyring.gpg</code></pre>
 
-    <p>Add the repository:</p>
-    <pre><code>echo "deb [arch=amd64 signed-by=/usr/share/keyrings/whatslnx-archive-keyring.gpg] \
+        <p>Add the repository:</p>
+        <pre><code><span class="code-label">shell</span>echo "deb [arch=amd64 signed-by=/usr/share/keyrings/whatslnx-archive-keyring.gpg] \
   https://kmmuntasir.github.io/WhatsLNX stable main" \
   | sudo tee /etc/apt/sources.list.d/whatslnx.list</code></pre>
 
-    <p>Update the package index:</p>
-    <pre><code>sudo apt update</code></pre>
+        <p>Update the package index:</p>
+        <pre><code><span class="code-label">shell</span>sudo apt update</code></pre>
 
-    <h2>Install</h2>
-    <pre><code>sudo apt install whatslnx</code></pre>
+        <h3>Install</h3>
+        <pre><code><span class="code-label">shell</span>sudo apt install whatslnx</code></pre>
 
-    <h2>Upgrade</h2>
-    <pre><code>sudo apt update &amp;&amp; sudo apt upgrade whatslnx</code></pre>
+        <h3>Upgrade</h3>
+        <pre><code><span class="code-label">shell</span>sudo apt update &amp;&amp; sudo apt upgrade whatslnx</code></pre>
 
-    <h2>Uninstall</h2>
-    <pre><code>sudo apt remove whatslnx
+        <h3>Uninstall</h3>
+        <pre><code><span class="code-label">shell</span>sudo apt remove whatslnx
 
 # Optional: remove the repository
 sudo rm /etc/apt/sources.list.d/whatslnx.list
 sudo rm /usr/share/keyrings/whatslnx-archive-keyring.gpg
 sudo apt update</code></pre>
 
-    <h2>Alternative: AppImage</h2>
-    <p>For Fedora, Arch, and other distributions, download the AppImage from <a href="https://github.com/kmmuntasir/WhatsLNX/releases/latest">GitHub Releases</a>.</p>
+        <h3>Remove config data</h3>
+        <pre><code><span class="code-label">shell</span>rm -rf ~/.config/whatslnx</code></pre>
+      </div>
 
-    <div class="footer">
-      <a href="https://github.com/kmmuntasir/WhatsLNX">Source Code</a> &middot;
-      <a href="https://github.com/kmmuntasir/WhatsLNX/releases">Releases</a> &middot;
-      <a href="https://github.com/kmmuntasir/WhatsLNX/issues">Issues</a>
-    </div>
+      <!-- AppImage -->
+      <div id="tab-appimage" class="tab-content">
+        <p>Universal, no-install release. Works on any Linux distribution.</p>
+
+        <h3>Download and run</h3>
+        <pre><code><span class="code-label">shell</span># Download the latest AppImage
+wget https://github.com/kmmuntasir/WhatsLNX/releases/latest/download/WhatsLNX-*.AppImage
+
+# Make it executable
+chmod +x WhatsLNX-*.AppImage
+
+# Run
+./WhatsLNX-*.AppImage</code></pre>
+
+        <h3>Uninstall</h3>
+        <pre><code><span class="code-label">shell</span>rm WhatsLNX-*.AppImage
+rm -rf ~/.config/whatslnx</code></pre>
+      </div>
+
+      <!-- Source -->
+      <div id="tab-source" class="tab-content">
+        <p>Build from source. Requires Node.js 24+ and npm.</p>
+
+        <h3>Prerequisites</h3>
+        <ul style="margin: 0.5rem 0 0.5rem 1.5rem; color: #c9d1d9;">
+          <li>Node.js 24+ and npm</li>
+          <li>Linux (Ubuntu 24.04+ recommended)</li>
+        </ul>
+
+        <h3>Build</h3>
+        <pre><code><span class="code-label">shell</span>git clone https://github.com/kmmuntasir/WhatsLNX.git
+cd WhatsLNX
+npm install
+npm start        # Run in development mode
+npm run build    # Build all packages (AppImage + DEB)</code></pre>
+
+        <h3>Individual targets</h3>
+        <pre><code><span class="code-label">shell</span>npm run build:appimage
+npm run build:deb</code></pre>
+
+        <p>Build artifacts go to <code>dist/</code>.</p>
+      </div>
+    </section>
+
+    <!-- Configuration -->
+    <section id="config">
+      <h2><span class="icon">&#9881;</span> Configuration</h2>
+      <p>All settings are accessible via the <strong>tray icon context menu</strong> &rarr; <strong>Settings</strong>.</p>
+
+      <h3>Theme</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Behavior</th></tr></thead>
+          <tbody>
+            <tr><td>System (default)</td><td>Follows your desktop's light/dark theme automatically</td></tr>
+            <tr><td>Light</td><td>Forces light mode</td></tr>
+            <tr><td>Dark</td><td>Forces dark mode</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Fonts</h3>
+      <p>Configure <strong>Serif</strong>, <strong>Sans-Serif</strong>, and <strong>Monospace</strong> font families. All system fonts are detected automatically via <code>fc-list</code>. Click <strong>Reset to Default</strong> to clear custom fonts.</p>
+    </section>
+
+    <!-- Keyboard Shortcuts -->
+    <section id="shortcuts">
+      <h2><span class="icon">&#9000;</span> Keyboard Shortcuts</h2>
+      <div class="shortcuts">
+        <div class="shortcut">
+          <span class="shortcut-action">Close window</span>
+          <span>Minimize to tray (app keeps running)</span>
+        </div>
+        <div class="shortcut">
+          <span class="shortcut-action">Tray left-click</span>
+          <span>Show/hide window</span>
+        </div>
+        <div class="shortcut">
+          <span class="shortcut-action">Tray right-click</span>
+          <span>Context menu</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Deep Links -->
+    <section id="deeplinks">
+      <h2><span class="icon">&#128279;</span> Deep Links</h2>
+      <p>WhatsLNX registers as the system handler for <code>whatsapp://</code> URIs. Supported formats:</p>
+      <pre><code><span class="code-label">uri</span>whatsapp://send?phone=1234567890
+whatsapp://send?phone=1234567890&amp;text=Hello
+whatsapp://send?text=Hello</code></pre>
+      <p>Clicking these links in any application will open WhatsLNX and navigate to the compose view.</p>
+    </section>
+
+    <!-- Comparison -->
+    <section id="comparison">
+      <h2><span class="icon">&#128200;</span> Competitive Comparison</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>WhatsLNX</th>
+              <th>WhatsDesk</th>
+              <th>Whatsie</th>
+              <th>WhatsApp for Linux</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="highlight"><td>Wayland support</td><td class="yes">Auto</td><td class="partial">Manual</td><td class="partial">Partial</td><td class="no">Unknown</td></tr>
+            <tr class="highlight"><td>Audio/Video calling</td><td class="yes">Auto-permission</td><td class="no">Broken in Snap</td><td class="yes">Yes</td><td class="no">Unknown</td></tr>
+            <tr class="highlight"><td>Screen sharing</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+            <tr><td>Native file dialogs</td><td class="yes">xdg-desktop-portal</td><td class="partial">Custom</td><td class="partial">Custom</td><td class="partial">Custom</td></tr>
+            <tr><td>Theme sync with OS</td><td class="yes">Auto</td><td class="no">Manual</td><td class="no">Manual</td><td class="no">Manual</td></tr>
+            <tr><td>System tray icon</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><td>Native notifications</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><td>Unread badge</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td><td class="no">No</td></tr>
+            <tr><td>Drag-and-drop files</td><td class="yes">Yes</td><td class="no">Unknown</td><td class="no">Unknown</td><td class="no">Unknown</td></tr>
+            <tr><td>Font configuration</td><td class="yes">Yes (3 families)</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+            <tr><td>Deep link support</td><td class="yes"><code>whatsapp://</code></td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+            <tr><td>Session persistence</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><td>Auto-update</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="no">No</td></tr>
+            <tr><td>Package formats</td><td>AppImage, DEB</td><td>AppImage, DEB, Snap</td><td>Snap, AppImage, DEB</td><td>DEB, Flatpak</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Supported Platforms -->
+    <section id="platforms">
+      <h2><span class="icon">&#128187;</span> Supported Platforms</h2>
+      <div class="platforms-grid">
+        <div class="platform-item"><span class="platform-name">Ubuntu 24.04 / 26.04</span><span class="platform-status primary">Primary</span></div>
+        <div class="platform-item"><span class="platform-name">Linux Mint 21.x / 22.x</span><span class="platform-status primary">Primary</span></div>
+        <div class="platform-item"><span class="platform-name">Elementary OS 7 / 8</span><span class="platform-status primary">Primary</span></div>
+        <div class="platform-item"><span class="platform-name">Debian 12 / 13</span><span class="platform-status primary">Primary</span></div>
+        <div class="platform-item"><span class="platform-name">Fedora 40+</span><span class="platform-status secondary">AppImage</span></div>
+        <div class="platform-item"><span class="platform-name">Arch / Manjaro</span><span class="platform-status secondary">AppImage</span></div>
+      </div>
+      <p style="margin-top: 1rem; color: #8b949e; font-size: 0.9rem;">Tested on GNOME 46+ (Wayland/X11), KDE Plasma 6+ (Wayland/X11), XFCE 4.18+.</p>
+    </section>
+
+    <!-- Known Issues -->
+    <section id="issues">
+      <h2><span class="icon">&#128268;</span> Known Issues</h2>
+      <ul style="margin: 0.5rem 0 0.5rem 1.5rem; color: #c9d1d9;">
+        <li><strong>GNOME tray icons</strong> require the <a href="https://extensions.gnome.org/extension/615/appindicator-support/">AppIndicator</a> extension</li>
+        <li><strong>Screen sharing on Wayland</strong> requires PipeWire and xdg-desktop-portal (pre-installed on most modern distros)</li>
+        <li>WhatsApp Web is a third-party service &mdash; feature availability depends on Meta's deployment</li>
+      </ul>
+    </section>
   </div>
+
+  <!-- Footer -->
+  <footer>
+    <a href="https://github.com/kmmuntasir/WhatsLNX">Source Code</a>
+    <a href="https://github.com/kmmuntasir/WhatsLNX/releases">Releases</a>
+    <a href="https://github.com/kmmuntasir/WhatsLNX/issues">Issues</a>
+    <a href="https://github.com/kmmuntasir/WhatsLNX/blob/main/CHANGELOG.md">Changelog</a>
+    <p style="margin-top: 0.75rem;">Licensed under <a href="https://github.com/kmmuntasir/WhatsLNX/blob/main/LICENSE">GPL-3.0</a></p>
+  </footer>
+
+  <script>
+    function switchTab(e, id) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      document.getElementById(id).classList.add('active');
+    }
+  </script>
 </body>
 </html>
