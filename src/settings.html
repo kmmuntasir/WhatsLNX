@@ -86,6 +86,50 @@
     .btn-reset:hover {
       background: #555;
     }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .toggle-row label {
+      margin-bottom: 0;
+      cursor: pointer;
+    }
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle .slider {
+      position: absolute;
+      inset: 0;
+      background: #555;
+      border-radius: 22px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle .slider::before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 3px;
+      bottom: 3px;
+      background: #e0e0e0;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked + .slider {
+      background: #25d366;
+    }
+    .toggle input:checked + .slider::before {
+      transform: translateX(18px);
+    }
   </style>
 </head>
 <body>
@@ -98,6 +142,19 @@
         <label><input type="radio" name="theme" value="system" id="theme-system"> System</label>
         <label><input type="radio" name="theme" value="light" id="theme-light"> Light</label>
         <label><input type="radio" name="theme" value="dark" id="theme-dark"> Dark</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Behavior</div>
+    <div class="field">
+      <div class="toggle-row">
+        <label for="close-to-tray">Close button minimizes to tray</label>
+        <div class="toggle">
+          <input type="checkbox" id="close-to-tray">
+          <span class="slider"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -142,11 +199,14 @@
     // --- Load current settings ---
     async function loadSettings() {
       const settings = await api.getSettings();
-      const { themeSource, fonts } = settings;
+      const { themeSource, closeToTray, fonts } = settings;
 
       // Theme
       const themeRadio = document.querySelector(`input[name="theme"][value="${themeSource}"]`);
       if (themeRadio) themeRadio.checked = true;
+
+      // Close to tray
+      document.getElementById('close-to-tray').checked = closeToTray !== false;
 
       // Fonts
       if (fonts) {
@@ -161,6 +221,11 @@
       radio.addEventListener('change', () => {
         api.setTheme(radio.value);
       });
+    });
+
+    // --- Close to tray toggle ---
+    document.getElementById('close-to-tray').addEventListener('change', (e) => {
+      api.setCloseToTray(e.target.checked);
     });
 
     // --- Font changes ---
