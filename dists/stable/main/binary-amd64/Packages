@@ -2,14 +2,14 @@ Package: whatslnx
 Version: 0.1.0
 Architecture: amd64
 Maintainer: Muntasir Billah Munna <kmmuntasir@gmail.com>
-Installed-Size: 312750
+Installed-Size: 312754
 Depends: libnotify4, libxtst6, libnss3, libxss1, libasound2
 Recommends: libappindicator3-1
 Filename: pool/main/whatslnx_0.1.0_amd64.deb
-Size: 95654060
-MD5sum: 012ee1f2562d01cbc3b91d14bce8c7e2
-SHA1: ab58ce524cca8ca41428b6960a654788c1597f28
-SHA256: 003cfcc3bce410f003de0d1e3eb332e4155b061f197a4877a3618b03cbb45144
+Size: 95655288
+MD5sum: 5967484586a6613c50f3d4bc9dbac725
+SHA1: 7f41c7311eed3f90325ad5f70234690e03f8c504
+SHA256: 4827ed0ef5bdaa45f73422de9e956969c9e4813d2de808d9d4c27d8be200ab2f
 Section: default
 Priority: optional
 Homepage: https://github.com/kmmuntasir/WhatsLNX#readme

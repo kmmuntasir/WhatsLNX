@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsLNX APT Repository</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      line-height: 1.6;
+      padding: 2rem;
+    }
+    .container { max-width: 720px; margin: 0 auto; }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    h1 a { color: #58a6ff; text-decoration: none; }
+    h1 a:hover { text-decoration: underline; }
+    .subtitle { color: #8b949e; margin-bottom: 2rem; }
+    h2 {
+      font-size: 1.2rem;
+      color: #58a6ff;
+      margin: 2rem 0 0.75rem;
+      padding-bottom: 0.25rem;
+      border-bottom: 1px solid #21262d;
+    }
+    pre {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.875rem;
+      margin: 0.5rem 0;
+    }
+    code { font-family: "SFMono-Regular", Consolas, monospace; }
+    p { margin: 0.5rem 0; }
+    a { color: #58a6ff; }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #1f6feb33;
+      color: #58a6ff;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #21262d;
+      color: #484f58;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><a href="https://github.com/kmmuntasir/WhatsLNX">WhatsLNX</a> <span class="badge">APT Repository</span></h1>
+    <p class="subtitle">Unofficial WhatsApp desktop client for Linux &mdash; DEB packages for Ubuntu, Debian, and Linux Mint.</p>
+
+    <h2>One-time setup</h2>
+    <p>Add the repository signing key:</p>
+    <pre><code>curl -fsSL https://kmmuntasir.github.io/WhatsLNX/whatslnx-archive-keyring.gpg \
+  | sudo gpg --dearmor -o /usr/share/keyrings/whatslnx-archive-keyring.gpg</code></pre>
+
+    <p>Add the repository:</p>
+    <pre><code>echo "deb [arch=amd64 signed-by=/usr/share/keyrings/whatslnx-archive-keyring.gpg] \
+  https://kmmuntasir.github.io/WhatsLNX stable main" \
+  | sudo tee /etc/apt/sources.list.d/whatslnx.list</code></pre>
+
+    <p>Update the package index:</p>
+    <pre><code>sudo apt update</code></pre>
+
+    <h2>Install</h2>
+    <pre><code>sudo apt install whatslnx</code></pre>
+
+    <h2>Upgrade</h2>
+    <pre><code>sudo apt update &amp;&amp; sudo apt upgrade whatslnx</code></pre>
+
+    <h2>Uninstall</h2>
+    <pre><code>sudo apt remove whatslnx
+
+# Optional: remove the repository
+sudo rm /etc/apt/sources.list.d/whatslnx.list
+sudo rm /usr/share/keyrings/whatslnx-archive-keyring.gpg
+sudo apt update</code></pre>
+
+    <h2>Alternative: AppImage</h2>
+    <p>For Fedora, Arch, and other distributions, download the AppImage from <a href="https://github.com/kmmuntasir/WhatsLNX/releases/latest">GitHub Releases</a>.</p>
+
+    <div class="footer">
+      <a href="https://github.com/kmmuntasir/WhatsLNX">Source Code</a> &middot;
+      <a href="https://github.com/kmmuntasir/WhatsLNX/releases">Releases</a> &middot;
+      <a href="https://github.com/kmmuntasir/WhatsLNX/issues">Issues</a>
+    </div>
+  </div>
+</body>
+</html>
