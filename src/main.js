@@ -269,23 +269,25 @@ function createMainWindow() {
 
   // --- Save window state on close ---
   mainWindow.on('close', (event) => {
-    if (!app.isQuitting) {
-      if (store.get('closeToTray', true)) {
-        event.preventDefault();
-        mainWindow.hide();
-        if (tray) updateContextMenu(mainWindow, store);
-        return;
-      }
-      // closeToTray disabled — save state and quit
-      app.isQuitting = true;
+    if (!app.isQuitting && store.get('closeToTray', true)) {
+      event.preventDefault();
+      mainWindow.hide();
+      if (tray) updateContextMenu(mainWindow, store);
+      return;
     }
 
+    // Save window state before window is destroyed
     if (!mainWindow.isMaximized() && !mainWindow.isMinimized()) {
       const bounds = mainWindow.getBounds();
       store.set('windowBounds', { width: bounds.width, height: bounds.height });
       store.set('windowPosition', { x: bounds.x, y: bounds.y });
     }
     store.set('isMaximized', mainWindow.isMaximized());
+
+    if (!app.isQuitting) {
+      app.isQuitting = true;
+      app.quit();
+    }
   });
 
   // Handle deep link + re-apply fonts on every page load
