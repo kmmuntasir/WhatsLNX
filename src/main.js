@@ -269,11 +269,15 @@ function createMainWindow() {
 
   // --- Save window state on close ---
   mainWindow.on('close', (event) => {
-    if (!app.isQuitting && store.get('closeToTray', true)) {
-      event.preventDefault();
-      mainWindow.hide();
-      if (tray) updateContextMenu(mainWindow, store);
-      return;
+    if (!app.isQuitting) {
+      if (store.get('closeToTray', true)) {
+        event.preventDefault();
+        mainWindow.hide();
+        if (tray) updateContextMenu(mainWindow, store);
+        return;
+      }
+      // closeToTray disabled — save state and quit
+      app.isQuitting = true;
     }
 
     if (!mainWindow.isMaximized() && !mainWindow.isMinimized()) {
