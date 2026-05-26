@@ -5,6 +5,33 @@ All notable changes to WhatsLNX are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-05-26
+
+### Added
+
+- Official project website at `kmmuntasir.github.io/WhatsLNX` with install instructions, screenshots, features, and comparison table
+- Light/dark/system theme toggle on the website
+- CLI argument support and `/usr/bin/whatslnx` entry point
+- Open source community files (CONTRIBUTING.md, SECURITY.md, ARCHITECTURE.md)
+- Unit tests for utility functions
+- CI pipeline with lint, test, and build stages
+- Release pipeline with GitHub Releases publish and APT repo deployment to GitHub Pages
+- `releaseType: release` in electron-builder config to prevent draft releases
+
+### Fixed
+
+- Desktop notifications not showing on Linux
+- Settings window security (`contextIsolation: true`, `contextBridge`)
+- GPG signing in CI with pinentry-mode loopback
+- ESLint 10 compatibility and flat config
+- APT Release file missing `Suite`/`Codename`/`Origin`/`Label` fields (conflicting distribution warning)
+
+### Changed
+
+- Tray badge improved: 3px yellow outline with black digit fill
+- Bumped Node.js to 24, GitHub Actions to v6, GPG import action to v7
+- Removed Snap and Flatpak support — AppImage and DEB only
+
 ## [0.1.0] - 2026-05-25
 
 ### Added
@@ -41,4 +68,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Standardized appId (`io.github.kmmuntasir.WhatsLNX`) across all configs
 - Settings window with `contextIsolation: true` and `contextBridge` (no `nodeIntegration`)
 
+[0.2.0]: https://github.com/kmmuntasir/WhatsLNX/releases/tag/v0.2.0
 [0.1.0]: https://github.com/kmmuntasir/WhatsLNX/releases/tag/v0.1.0

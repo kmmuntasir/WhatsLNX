@@ -1,7 +1,7 @@
 {
   "name": "whatslnx",
   "productName": "WhatsLNX",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A minimalist, high-performance unofficial WhatsApp desktop client for Linux",
   "main": "src/main.js",
   "author": {
