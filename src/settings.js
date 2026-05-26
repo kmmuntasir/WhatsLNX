@@ -31,7 +31,7 @@ function createSettingsWindow(mainWindow, store) {
 
   settingsWindow = new BrowserWindow({
     width: 420,
-    height: 480,
+    height: 540,
     resizable: false,
     minimizable: false,
     maximizable: false,
@@ -65,6 +65,7 @@ function createSettingsWindow(mainWindow, store) {
   ipcMain.handle('get-settings', () => {
     return {
       themeSource: store.get('themeSource', 'system'),
+      closeToTray: store.get('closeToTray', true),
       fonts: store.get('fonts', {}),
     };
   });
@@ -73,6 +74,10 @@ function createSettingsWindow(mainWindow, store) {
     const { nativeTheme } = require('electron');
     nativeTheme.themeSource = theme;
     store.set('themeSource', theme);
+  });
+
+  ipcMain.on('settings-close-to-tray', (_event, enabled) => {
+    store.set('closeToTray', enabled);
   });
 
   ipcMain.on('settings-fonts', (_event, fonts) => {

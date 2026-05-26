@@ -201,7 +201,12 @@ function createTray(mainWindow, store) {
       mainWindow.show();
       mainWindow.focus();
     }
+    updateContextMenu(mainWindow, store);
   });
+
+  // Rebuild context menu when window visibility changes
+  mainWindow.on('show', () => updateContextMenu(mainWindow, store));
+  mainWindow.on('hide', () => updateContextMenu(mainWindow, store));
 
   const { ipcMain } = require('electron');
   ipcMain.on('unread-count', (_event, count) => {
@@ -281,4 +286,4 @@ function updateContextMenu(mainWindow, store) {
   tray.setContextMenu(contextMenu);
 }
 
-module.exports = { createTray };
+module.exports = { createTray, updateContextMenu };

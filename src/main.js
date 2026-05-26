@@ -41,7 +41,7 @@ if (process.platform === 'linux') {
 
 const { app, BrowserWindow, session, shell, nativeTheme, dialog, ipcMain, desktopCapturer, screen } = require('electron');
 const path = require('path');
-const { createTray } = require('./tray');
+const { createTray, updateContextMenu } = require('./tray');
 const { showNativeNotification } = require('./notifications');
 
 const { initUpdater } = require('./updater');
@@ -118,6 +118,7 @@ async function init() {
       windowPosition: { x: undefined, y: undefined },
       isMaximized: false,
       themeSource: 'system',
+      closeToTray: true,
       fonts: {},
     },
   });
@@ -268,9 +269,10 @@ function createMainWindow() {
 
   // --- Save window state on close ---
   mainWindow.on('close', (event) => {
-    if (!app.isQuitting) {
+    if (!app.isQuitting && store.get('closeToTray', true)) {
       event.preventDefault();
       mainWindow.hide();
+      if (tray) updateContextMenu(mainWindow, store);
       return;
     }
 
