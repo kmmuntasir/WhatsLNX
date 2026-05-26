@@ -11,7 +11,7 @@
       background: #1e1e1e;
       color: #e0e0e0;
       padding: 24px;
-      overflow: hidden;
+      overflow-y: auto;
     }
     h2 {
       font-size: 16px;
@@ -90,15 +90,15 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-    }
-    .toggle-row label {
-      margin-bottom: 0;
-      cursor: pointer;
+      gap: 12px;
     }
     .toggle {
       position: relative;
+      display: inline-block;
       width: 40px;
       height: 22px;
+      cursor: pointer;
+      flex-shrink: 0;
     }
     .toggle input {
       opacity: 0;
@@ -150,11 +150,11 @@
     <div class="section-title">Behavior</div>
     <div class="field">
       <div class="toggle-row">
-        <label for="close-to-tray">Close button minimizes to tray</label>
-        <div class="toggle">
+        <span>Close button minimizes to tray</span>
+        <label class="toggle">
           <input type="checkbox" id="close-to-tray">
           <span class="slider"></span>
-        </div>
+        </label>
       </div>
     </div>
   </div>
