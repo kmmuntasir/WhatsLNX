@@ -30,7 +30,7 @@ jobs:
             echo "Tag $VERSION does not exist — proceeding with release"
           fi
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         if: steps.version-check.outputs.new_version == 'true'
         with:
           node-version: 24
