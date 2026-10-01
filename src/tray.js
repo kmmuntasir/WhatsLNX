@@ -244,6 +244,7 @@ function updateContextMenu(mainWindow, store) {
   const isVisible = mainWindow.isVisible();
   const themeSource = store.get('themeSource', 'system');
   const { createSettingsWindow, registerIpcHandlers } = require('./settings');
+  const { createAboutWindow, createLicenseWindow, registerIpcHandlers: registerAboutIpc } = require('./about');
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -256,6 +257,14 @@ function updateContextMenu(mainWindow, store) {
     {
       label: 'Settings...',
       click: () => { registerIpcHandlers(mainWindow, store); createSettingsWindow(mainWindow, store); },
+    },
+    {
+      label: 'About WhatsLNX',
+      click: () => { registerAboutIpc(mainWindow); createAboutWindow(mainWindow); },
+    },
+    {
+      label: 'License',
+      click: () => { registerAboutIpc(mainWindow); createLicenseWindow(mainWindow); },
     },
     {
       label: 'Reload',

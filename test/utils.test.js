@@ -9,6 +9,8 @@ const {
   generateFontCSS,
   isAllowedNavigation,
   isNetworkError,
+  escapeHtml,
+  extractChangelogSection,
   ALLOWED_PERMISSIONS,
 } = require('../src/utils');
 
@@ -344,5 +346,76 @@ describe('isNetworkError', () => {
     assert.equal(isNetworkError(null), false);
     assert.equal(isNetworkError(''), false);
     assert.equal(isNetworkError(500), false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// escapeHtml
+// ---------------------------------------------------------------------------
+describe('escapeHtml', () => {
+  it('escapes the five HTML-significant characters', () => {
+    assert.equal(escapeHtml('<a href="x">&\'</a>'), '&lt;a href=&quot;x&quot;&gt;&amp;&#39;&lt;/a&gt;');
+  });
+
+  it('returns plain text unchanged', () => {
+    assert.equal(escapeHtml('WhatsLNX 1.2.3'), 'WhatsLNX 1.2.3');
+  });
+
+  it('coerces non-string input', () => {
+    assert.equal(escapeHtml(42), '42');
+    assert.equal(escapeHtml(null), 'null');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// extractChangelogSection
+// ---------------------------------------------------------------------------
+describe('extractChangelogSection', () => {
+  const MD = [
+    '# Changelog',
+    '',
+    '## [1.1.0] - 2026-01-02',
+    '',
+    '### Added',
+    '',
+    '- Feature B',
+    '',
+    '## [1.0.0] - 2026-01-01',
+    '',
+    '### Added',
+    '',
+    '- Feature A',
+    '',
+    '## [0.9.0] - 2025-12-01',
+    '',
+    '### Fixed',
+    '',
+    '- Old fix',
+  ].join('\n');
+
+  it('extracts the section for the newest version', () => {
+    assert.equal(extractChangelogSection(MD, '1.1.0'), '### Added\n\n- Feature B');
+  });
+
+  it('extracts a middle section up to the next header', () => {
+    assert.equal(extractChangelogSection(MD, '1.0.0'), '### Added\n\n- Feature A');
+  });
+
+  it('extracts the last section', () => {
+    assert.equal(extractChangelogSection(MD, '0.9.0'), '### Fixed\n\n- Old fix');
+  });
+
+  it('does not match a version prefix of another version', () => {
+    assert.equal(extractChangelogSection(MD, '1.1'), '');
+  });
+
+  it('returns empty string for unknown versions', () => {
+    assert.equal(extractChangelogSection(MD, '2.0.0'), '');
+  });
+
+  it('returns empty string for missing/invalid input', () => {
+    assert.equal(extractChangelogSection(undefined, '1.0.0'), '');
+    assert.equal(extractChangelogSection(MD, ''), '');
+    assert.equal(extractChangelogSection(MD, null), '');
   });
 });

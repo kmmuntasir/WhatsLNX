@@ -5,6 +5,26 @@ All notable changes to WhatsLNX are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-10-02
+
+### Added
+
+- "About WhatsLNX" tray menu item opening a window with the current version
+  and this release's notes (no more `whatslnx -v` in a terminal)
+- "License" tray menu item opening a viewer for the full GPL-3.0 text
+
+### Fixed
+
+- Deep links (`whatsapp://send?...`) reloaded the app and then wedged on a
+  blank window: WhatsApp Web registers a `beforeunload` handler, which
+  silently cancelled the deep-link navigation. The window now forces
+  navigations past `beforeunload` (`will-prevent-unload`), so links open the
+  chat reliably
+- Save dialog appeared twice for one download: WhatsApp Web fires the same
+  download twice in quick succession and each request prompted again.
+  Duplicate requests (same URL + filename within 10 s) now reuse the
+  already-approved save path silently
+
 ## [0.3.2] - 2026-10-02
 
 ### Added

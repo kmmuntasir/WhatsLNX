@@ -105,6 +105,7 @@ function handleDeepLink(url) {
   if (!mainWindow) return;
   const waUrl = buildDeepLinkUrl(url);
   if (waUrl) {
+    console.log(`[deeplink] ${url} -> ${waUrl}`);
     mainWindow.webContents.loadURL(waUrl).catch(() => {});
   }
 }
@@ -171,11 +172,26 @@ async function init() {
   });
 
   // --- Download interception: use native save dialog ---
+  // WhatsApp Web triggers the same download twice in quick succession (two
+  // will-download events for one user action), which used to surface the
+  // save dialog twice. Deduplicate by URL + filename: a repeat within the
+  // window is silently saved to the already-approved path.
+  const recentSaves = new Map(); // key -> { path, savedAt }
+  const SAVE_DEDUPE_WINDOW_MS = 10000;
+
   session.defaultSession.on('will-download', (_event, item) => {
     // NOTE: calling event.preventDefault() here would CANCEL the download
     // (the item becomes unusable from the next tick). Instead we always
     // resolve to either a save path or an explicit cancel within this
     // synchronous handler, which also suppresses Electron's default UI.
+    const dedupeKey = `${item.getURL()}::${item.getFilename()}`;
+    const previous = recentSaves.get(dedupeKey);
+    if (previous && Date.now() - previous.savedAt < SAVE_DEDUPE_WINDOW_MS) {
+      console.log(`[download] Duplicate request for ${item.getFilename()} — reusing ${previous.path}`);
+      item.setSavePath(previous.path);
+      return;
+    }
+
     const filePath = dialog.showSaveDialogSync(mainWindow, {
       defaultPath: path.join(app.getPath('downloads'), item.getFilename()),
       title: 'Save File',
@@ -183,6 +199,11 @@ async function init() {
 
     if (filePath) {
       item.setSavePath(filePath);
+      recentSaves.set(dedupeKey, { path: filePath, savedAt: Date.now() });
+      if (recentSaves.size > 50) {
+        // Map keeps insertion order — drop the oldest entry
+        recentSaves.delete(recentSaves.keys().next().value);
+      }
     } else {
       item.cancel();
     }
@@ -296,6 +317,11 @@ function createMainWindow() {
       shell.openExternal(url);
     }
   });
+
+  // WhatsApp Web registers a `beforeunload` handler; without this, a
+  // loadURL() deep link would be silently cancelled (window stays on the
+  // old page / wedges half-rendered). Force navigations through.
+  mainWindow.webContents.on('will-prevent-unload', (event) => event.preventDefault());
 
   // --- Save window state on close ---
   mainWindow.on('close', (event) => {

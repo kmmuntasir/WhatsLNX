@@ -47,9 +47,13 @@ WhatsLNX is an Electron wrapper around [WhatsApp Web](https://web.whatsapp.com).
 | `src/settings.js` | Settings BrowserWindow, theme and font configuration |
 | `src/settings-preload.js` | Context bridge for settings window (`getSystemFonts`, `getSettings`, `setTheme`, `setFonts`) |
 | `src/settings.html` | Settings UI — theme radio buttons, font dropdowns |
+| `src/about.js` | About and License windows; serves version + changelog excerpt + license text over IPC |
+| `src/about.html` | About UI — logo, version, release notes, license/repo links |
+| `src/about-preload.js` | Context bridge for the About/License windows (`getAboutInfo`, `getLicenseText`, `openLicenseWindow`) |
+| `src/license.html` | License viewer — scrollable GPL-3.0 text |
 | `src/offline.html` | Local "You're offline" page shown when WhatsApp Web is unreachable; reconnects via the `retry-connection` IPC channel |
 | `src/updater.js` | Auto-update check (4-hour interval), download, install notification |
-| `src/utils.js` | Pure functions — URL parsing, position clamping, permission checking, badge label generation, font CSS generation, navigation validation, network-error detection |
+| `src/utils.js` | Pure functions — URL parsing, position clamping, permission checking, badge label generation, font CSS generation, navigation validation, network-error detection, changelog extraction, HTML escaping |
 
 ## Security Model
 

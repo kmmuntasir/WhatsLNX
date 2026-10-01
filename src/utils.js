@@ -114,6 +114,32 @@ function isNetworkError(errorDescription) {
   return typeof errorDescription === 'string' && NETWORK_ERROR_CODES.has(errorDescription);
 }
 
+/**
+ * Escape a string for safe interpolation into HTML.
+ */
+function escapeHtml(text) {
+  return String(text)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+/**
+ * Extract the section of a Keep-a-Changelog style CHANGELOG for a version.
+ * Returns the lines between `## [<version>]` and the next `## [` header
+ * (trimmed), or an empty string when the version has no section.
+ */
+function extractChangelogSection(markdown, version) {
+  if (typeof markdown !== 'string' || !version) return '';
+  const lines = markdown.split('\n');
+  const start = lines.findIndex(line => line.startsWith(`## [${version}]`));
+  if (start === -1) return '';
+  const end = lines.findIndex((line, i) => i > start && /^## \[/.test(line));
+  return lines.slice(start + 1, end === -1 ? undefined : end).join('\n').trim();
+}
+
 module.exports = {
   ALLOWED_PERMISSIONS,
   NETWORK_ERROR_CODES,
@@ -125,4 +151,6 @@ module.exports = {
   generateFontCSS,
   isAllowedNavigation,
   isNetworkError,
+  escapeHtml,
+  extractChangelogSection,
 };
