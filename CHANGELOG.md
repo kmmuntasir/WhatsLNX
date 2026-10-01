@@ -5,6 +5,37 @@ All notable changes to WhatsLNX are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-10-02
+
+### Added
+
+- Offline page: when WhatsApp Web cannot be reached (no network), a local
+  "You're offline" screen is shown instead of a blank window, with a Reconnect
+  button, automatic retry every 15 seconds, and instant retry when connectivity
+  returns (fixes the AppImage catalog test failure — the app now shows content
+  when started without network access)
+
+### Fixed
+
+- File downloads: clicking download on a received file showed the save dialog
+  but never saved anything — `event.preventDefault()` in the `will-download`
+  handler cancels the download in current Electron versions. The handler now
+  always resolves to either the chosen save path or an explicit cancel
+- Auto-updater no longer emits `UnhandledPromiseRejectionWarning` when the
+  machine is offline (rejections are handled via the existing error handler)
+
+### Changed
+
+- AppImage is repacked with the modern statically-linked AppImage runtime
+  (`type2-runtime` via `appimagetool`) — it no longer depends on the EOL
+  libfuse2 or the system C library to mount, so it runs out of the box on
+  current distributions (Ubuntu 24.04+, Fedora, Arch, …). Delta updates are
+  replaced by full downloads; `latest-linux.yml` is regenerated with matching
+  checksums (`npm run build:appimage && npm run repack:appimage` locally)
+- Release workflow publishes via `gh release create` after the repack step
+- Updated Electron 42.2.0 → 44.5.1 (Chromium 140 → 152), electron-builder
+  26.8.1 → 26.15.3, electron-updater 6.8.3 → 6.8.9, ESLint 10.4.0 → 10.11.0
+
 ## [0.2.0] - 2026-05-26
 
 ### Added

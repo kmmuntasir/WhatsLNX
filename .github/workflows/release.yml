@@ -39,11 +39,30 @@ jobs:
       - run: npm ci
         if: steps.version-check.outputs.new_version == 'true'
 
-      - name: Build and publish to GitHub Releases
+      - name: Build Linux packages
         if: steps.version-check.outputs.new_version == 'true'
-        run: npm run build -- --publish always
+        run: npm run build -- --publish never
+
+      - name: Repack AppImage with static runtime
+        if: steps.version-check.outputs.new_version == 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq desktop-file-utils squashfs-tools
+          ./scripts/repack-appimage.sh
+
+      - name: Publish to GitHub Releases
+        if: steps.version-check.outputs.new_version == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="v$(jq -r .version package.json)"
+          gh release create "$VERSION" \
+            "dist/WhatsLNX-${VERSION#v}.AppImage" \
+            dist/whatslnx_*_amd64.deb \
+            dist/latest-linux.yml \
+            --title "WhatsLNX $VERSION" \
+            --generate-notes \
+            --latest
 
       - name: Import GPG Key
         if: steps.version-check.outputs.new_version == 'true'
