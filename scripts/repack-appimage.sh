@@ -70,9 +70,20 @@ find "$EXTRACT_DIR" -type d -exec chmod 755 {} +
 chmod 755 "$EXTRACT_DIR/AppRun"
 
 echo ">> Rebuilding AppImage with static runtime…"
-VERSION="$APP_VERSION" "$WORK/appimagetool" --comp zstd \
+# Embed AppImageUpdate information and generate the matching .zsync file.
+# zsyncmake writes its output to the *current directory*, so run appimagetool
+# from dist/. The pattern must match the .zsync asset name uploaded to
+# GitHub Releases.
+UPDATE_INFO="gh-releases-zsync|kmmuntasir|WhatsLNX|latest|WhatsLNX-*.AppImage.zsync"
+(cd "$DIST" && VERSION="$APP_VERSION" "$WORK/appimagetool" --comp zstd \
   --mksquashfs-opt -Xcompression-level --mksquashfs-opt 20 \
-  -n "$EXTRACT_DIR" "$APPIMAGE"
+  -u "$UPDATE_INFO" \
+  -n "$EXTRACT_DIR" "$APPIMAGE")
+
+if [ ! -f "$APPIMAGE.zsync" ]; then
+  echo "error: appimagetool did not generate $APPIMAGE.zsync" >&2
+  exit 1
+fi
 
 echo ">> Verifying repacked AppImage…"
 "$APPIMAGE" --appimage-extract-and-run --version

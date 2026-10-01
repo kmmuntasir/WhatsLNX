@@ -5,6 +5,14 @@ All notable changes to WhatsLNX are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.2] - 2026-10-02
+
+### Added
+
+- Embedded AppImage update information (`gh-releases-zsync` channel) and a
+  matching `.zsync` asset per release, so users can update with AppImageUpdate
+  / appimageupdate-style tools in addition to the built-in electron-updater
+
 ## [0.3.1] - 2026-10-02
 
 ### Fixed

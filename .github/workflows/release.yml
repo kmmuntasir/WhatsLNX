@@ -58,6 +58,7 @@ jobs:
           VERSION="v$(jq -r .version package.json)"
           gh release create "$VERSION" \
             "dist/WhatsLNX-${VERSION#v}.AppImage" \
+            "dist/WhatsLNX-${VERSION#v}.AppImage.zsync" \
             dist/whatslnx_*_amd64.deb \
             dist/latest-linux.yml \
             --title "WhatsLNX $VERSION" \
