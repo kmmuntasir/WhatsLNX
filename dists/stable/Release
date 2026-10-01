@@ -2,20 +2,20 @@ Origin: WhatsLNX
 Label: WhatsLNX APT Repository
 Suite: stable
 Codename: stable
-Date: Thu, 01 Oct 2026 20:55:23 +0000
+Date: Thu, 01 Oct 2026 21:35:14 +0000
 MD5Sum:
- ca71eb5a6ec3a9cbfab37eab636d7b10               38 Release
- abda599a7431a399df78401c7a8470e9              700 main/binary-amd64/Packages
- 591d97f879df5fb7e98e9d9fcdebee39              490 main/binary-amd64/Packages.gz
+ 47fa8785a613844f79f2655f10a83c23               38 Release
+ 8aaeb50a8aaca517e82acc42ec785efc              700 main/binary-amd64/Packages
+ afad5829d0d38e5fc80da124bc69e45f              490 main/binary-amd64/Packages.gz
 SHA1:
- 17e1689320cb16466ac88a67df90ff86b378949e               38 Release
- 35b4ff3f7b6b3f8c40623dc80fe1e7f2951fcbce              700 main/binary-amd64/Packages
- 2d057a9cdab5c946516f52db9f6c286c0cc712a3              490 main/binary-amd64/Packages.gz
+ f7dabf7bd9824896655658580f0b2518b4a3e7fb               38 Release
+ 341070be13ca52ec35d204d731b5ad8308ba6b98              700 main/binary-amd64/Packages
+ a927bdbaa9305095e5eea3c4b68230a05a2850be              490 main/binary-amd64/Packages.gz
 SHA256:
- 7b218bc5cf69c92f64d58b2a9c4be318039a60cc5eaa61cbd2ebfa9987e515fa               38 Release
- e00c245728b27a6042c47036fb891e1f6013036f31192aefcc46cadb167252be              700 main/binary-amd64/Packages
- 55161cd6f98cf69b691cfb781d691714d2dee3a746bccfa90ab5453d513e21be              490 main/binary-amd64/Packages.gz
+ a061fb2817dcdcf46dc76a183d5d259294397aa304d9230faf1ba2a55006f40a               38 Release
+ 7fec3dca0f344eef2aeb54bc4d5031cc896bdbf6acd112a589a0f33c3ba787c9              700 main/binary-amd64/Packages
+ 54d4a0970564aa75375246a469af277e47968aa2d5542c1fbb5060e02873c158              490 main/binary-amd64/Packages.gz
 SHA512:
- c462304773b6b951bd029bbf3efab1811912c2df4b65d3aa612f3c080e5482e6664d1d95e72ff00505156b2a148e3a81e0179c766ce58bd543e0ea6aa33ccf66               38 Release
- 8c856bcdaeaf50029021f02db95898eee395aa9313994fea4fec862f502d3d62ffc964f4783987a62d7d5b95a31c31f8f67a749e76169113aca37b2206b30791              700 main/binary-amd64/Packages
- 238c3dbf8e9ec05cee556e45d9f4f61140047eeeca5185fce63e60ddee749198de506f839e8f8127426ee78471daf0a17a3fff18edc38b656ee5d6c8ff0ec636              490 main/binary-amd64/Packages.gz
+ fccee2196db54445fdad640c5a96cd5e8afd56b7745fe725c57b2c0b7c419d3eeed734d01bf80efa36fdde441b50dcadcd09a8dcfc9b6d799432d095b7739deb               38 Release
+ 5dcc5a76cc118e5d45a1ce5e6bfde54fad924b9ea3a3c4a75d05c8be424b47ea3daba1bd801f92e9b1a9b99213d13ae3d2e5a3cc23120383586d6d66e48828f2              700 main/binary-amd64/Packages
+ 9118f774d0274c962c9d9ecbd9cb499eef190e10e3d8d49a71dce3d09561c6242504be87a335f71204bd708c370a81f5c4d15a5dd69771c97c66070e53703694              490 main/binary-amd64/Packages.gz
