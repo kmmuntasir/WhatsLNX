@@ -35,6 +35,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Release workflow publishes via `gh release create` after the repack step
 - Updated Electron 42.2.0 → 44.5.1 (Chromium 140 → 152), electron-builder
   26.8.1 → 26.15.3, electron-updater 6.8.3 → 6.8.9, ESLint 10.4.0 → 10.11.0
+## [0.2.1] - 2026-05-27
+
+### Added
+
+- "Close button minimizes to tray" toggle in Settings (default: enabled). When disabled, the close button quits the app instead of hiding to tray.
+
+### Fixed
+
+- Tray context menu showed "Hide WhatsLNX" instead of "Show WhatsLNX" after close-to-tray. Context menu is now rebuilt on window show/hide events.
+- Settings window threw "Attempted to register a second handler" error on reopening. IPC handlers are now registered once.
+- Settings toggle for close-to-tray didn't respond to clicks. Fixed by wrapping toggle in `<label>`.
+- Settings window content was clipped and not scrollable. Changed `overflow: hidden` to `overflow-y: auto`.
+- App didn't quit when close-to-tray was disabled — window closed but tray stayed alive. Close handler now explicitly calls `app.quit()`.
+- "Object has been destroyed" crash when interacting with tray menu after window was destroyed. Added `isDestroyed()` guards.
 
 ## [0.2.0] - 2026-05-26
 
@@ -99,5 +113,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Standardized appId (`io.github.kmmuntasir.WhatsLNX`) across all configs
 - Settings window with `contextIsolation: true` and `contextBridge` (no `nodeIntegration`)
 
+[0.2.1]: https://github.com/kmmuntasir/WhatsLNX/releases/tag/v0.2.1
 [0.2.0]: https://github.com/kmmuntasir/WhatsLNX/releases/tag/v0.2.0
 [0.1.0]: https://github.com/kmmuntasir/WhatsLNX/releases/tag/v0.1.0
