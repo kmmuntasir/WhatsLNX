@@ -5,6 +5,22 @@ All notable changes to WhatsLNX are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] - 2026-10-02
+
+### Fixed
+
+- AppImage repack: `--appimage-extract` applies the caller's umask, so the
+  repacked squashfs stored `0700` directories. Environments that extract the
+  AppImage as root (e.g. firejail `--appimage`, used by the AppImage catalog
+  test) then cannot traverse to `AppRun` as the regular user ("Permission
+  denied"). The repack script now normalizes with `chmod -R a+rX` before
+  packing, matching electron-builder's stored `0755` directories
+
+### Changed
+
+- README now links the project website / APT repository at
+  `kmmuntasir.github.io/WhatsLNX`
+
 ## [0.3.0] - 2026-10-02
 
 ### Added

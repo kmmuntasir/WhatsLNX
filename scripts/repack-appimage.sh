@@ -63,6 +63,12 @@ if ! (cd "$WORK" && "$APPIMAGE" --appimage-extract >/dev/null 2>&1) || [ ! -d "$
   fi
 fi
 
+echo ">> Normalizing permissions (extraction applies the caller's umask, which can produce 0700 dirs or group-writable files; AppImages must be world-readable/traversable — e.g. the AppImage catalog test runs them from a root-owned extraction)"
+chmod -R go-w "$EXTRACT_DIR"
+chmod -R a+rX "$EXTRACT_DIR"
+find "$EXTRACT_DIR" -type d -exec chmod 755 {} +
+chmod 755 "$EXTRACT_DIR/AppRun"
+
 echo ">> Rebuilding AppImage with static runtime…"
 VERSION="$APP_VERSION" "$WORK/appimagetool" --comp zstd \
   --mksquashfs-opt -Xcompression-level --mksquashfs-opt 20 \

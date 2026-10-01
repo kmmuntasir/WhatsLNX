@@ -8,6 +8,8 @@ A minimalist, high-performance unofficial WhatsApp desktop client for Linux.
 
 WhatsLNX wraps [WhatsApp Web](https://web.whatsapp.com) inside a tailored Electron shell that prioritizes system-native behavior, Wayland compatibility, and flawless WebRTC (audio/video calling) support.
 
+🌐 **Website & APT repository:** <https://kmmuntasir.github.io/WhatsLNX/>
+
 <p align="center">
   <img src="assets/screenshots/desktop-screenshot.jpg" alt="WhatsLNX on Linux" width="700">
 </p>
