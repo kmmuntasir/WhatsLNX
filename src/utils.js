@@ -2,6 +2,27 @@
 
 const ALLOWED_PERMISSIONS = ['media', 'notifications', 'geolocation', 'display-capture'];
 
+// Chromium network error codes that mean "no connectivity" rather than a
+// broken page — used to decide when to show the offline page.
+const NETWORK_ERROR_CODES = new Set([
+  'ERR_INTERNET_DISCONNECTED',
+  'ERR_NETWORK_CHANGED',
+  'ERR_NAME_NOT_RESOLVED',
+  'ERR_ADDRESS_UNREACHABLE',
+  'ERR_CONNECTION_REFUSED',
+  'ERR_CONNECTION_RESET',
+  'ERR_CONNECTION_CLOSED',
+  'ERR_CONNECTION_ABORTED',
+  'ERR_CONNECTION_TIMED_OUT',
+  'ERR_TIMED_OUT',
+  'ERR_PROXY_CONNECTION_FAILED',
+  'ERR_TUNNEL_CONNECTION_FAILED',
+  'ERR_CAPTIVE_PORTAL',
+  'ERR_EMPTY_RESPONSE',
+  'ERR_NETWORK_IO_SUSPENDED',
+  'ERR_NETWORK_ACCESS_DENIED',
+]);
+
 /**
  * Extract unread message count from WhatsApp Web page title.
  * Title format: "(3) WhatsApp" or "WhatsApp"
@@ -86,8 +107,16 @@ function isAllowedNavigation(url) {
   }
 }
 
+/**
+ * Check whether a `did-fail-load` error description is a connectivity error.
+ */
+function isNetworkError(errorDescription) {
+  return typeof errorDescription === 'string' && NETWORK_ERROR_CODES.has(errorDescription);
+}
+
 module.exports = {
   ALLOWED_PERMISSIONS,
+  NETWORK_ERROR_CODES,
   parseUnreadCount,
   clampPosition,
   buildDeepLinkUrl,
@@ -95,4 +124,5 @@ module.exports = {
   buildBadgeLabel,
   generateFontCSS,
   isAllowedNavigation,
+  isNetworkError,
 };

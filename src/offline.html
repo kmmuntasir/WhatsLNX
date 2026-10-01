@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:">
+  <title>WhatsLNX</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Ubuntu, 'Noto Sans', sans-serif;
+      background-color: #ffffff;
+      color: #1a1a1a;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-user-select: none;
+      user-select: none;
+      cursor: default;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #1a1a1a;
+        color: #e4e4e4;
+      }
+    }
+    .card {
+      text-align: center;
+      max-width: 420px;
+      padding: 2rem;
+    }
+    .icon {
+      width: 84px;
+      height: 84px;
+      margin: 0 auto 1.5rem;
+      display: block;
+      opacity: 0.75;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    p {
+      font-size: 0.925rem;
+      line-height: 1.5;
+      opacity: 0.75;
+      margin-bottom: 1.75rem;
+    }
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 8px;
+      background-color: #25d366;
+      color: #00301a;
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.7rem 2.5rem;
+      cursor: pointer;
+      transition: filter 0.15s ease, transform 0.05s ease;
+    }
+    button:hover {
+      filter: brightness(1.05);
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+    .hint {
+      font-size: 0.8rem;
+      opacity: 0.5;
+      margin: 1.25rem 0 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <h1>You're offline</h1>
+    <p>WhatsLNX can't connect to WhatsApp Web.<br>Check your internet connection and try again.</p>
+    <button id="reconnect" type="button">Reconnect</button>
+    <p class="hint">Retrying automatically every 15 seconds&hellip;</p>
+  </div>
+
+  <script>
+    'use strict';
+
+    const button = document.getElementById('reconnect');
+
+    function reconnect() {
+      button.disabled = true;
+      button.textContent = 'Connecting…';
+      try {
+        window.whatslnx.send('retry-connection');
+      } catch {
+        // IPC bridge unavailable — main process handles the retry loop anyway
+        button.disabled = false;
+        button.textContent = 'Reconnect';
+      }
+    }
+
+    // Re-enable the button if we are still on this page after a retry attempt
+    setInterval(() => {
+      button.disabled = false;
+      button.textContent = 'Reconnect';
+    }, 16000);
+
+    button.addEventListener('click', reconnect);
+
+    // Retry as soon as the OS reports connectivity again
+    window.addEventListener('online', reconnect);
+
+    // Periodic retry
+    setInterval(reconnect, 15000);
+  </script>
+</body>
+</html>

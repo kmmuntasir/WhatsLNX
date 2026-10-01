@@ -43,7 +43,7 @@ contextBridge.exposeInMainWorld('whatslnx', {
   },
 
   send: (channel, data) => {
-    const validChannels = ['unread-count', 'fonts-changed', 'notification'];
+    const validChannels = ['unread-count', 'fonts-changed', 'notification', 'retry-connection'];
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data);
     }

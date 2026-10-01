@@ -8,6 +8,7 @@ const {
   buildBadgeLabel,
   generateFontCSS,
   isAllowedNavigation,
+  isNetworkError,
   ALLOWED_PERMISSIONS,
 } = require('../src/utils');
 
@@ -306,5 +307,42 @@ describe('isAllowedNavigation', () => {
 
   it('blocks javascript: URLs', () => {
     assert.equal(isAllowedNavigation('javascript:alert(1)'), false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isNetworkError
+// ---------------------------------------------------------------------------
+describe('isNetworkError', () => {
+  it('recognises ERR_INTERNET_DISCONNECTED', () => {
+    assert.equal(isNetworkError('ERR_INTERNET_DISCONNECTED'), true);
+  });
+
+  it('recognises ERR_NAME_NOT_RESOLVED', () => {
+    assert.equal(isNetworkError('ERR_NAME_NOT_RESOLVED'), true);
+  });
+
+  it('recognises ERR_CONNECTION_REFUSED', () => {
+    assert.equal(isNetworkError('ERR_CONNECTION_REFUSED'), true);
+  });
+
+  it('recognises proxy failures', () => {
+    assert.equal(isNetworkError('ERR_PROXY_CONNECTION_FAILED'), true);
+    assert.equal(isNetworkError('ERR_TUNNEL_CONNECTION_FAILED'), true);
+  });
+
+  it('does not treat ERR_ABORTED as a network error', () => {
+    assert.equal(isNetworkError('ERR_ABORTED'), false);
+  });
+
+  it('does not treat file errors as network errors', () => {
+    assert.equal(isNetworkError('ERR_FILE_NOT_FOUND'), false);
+  });
+
+  it('returns false for undefined/empty/non-string input', () => {
+    assert.equal(isNetworkError(undefined), false);
+    assert.equal(isNetworkError(null), false);
+    assert.equal(isNetworkError(''), false);
+    assert.equal(isNetworkError(500), false);
   });
 });

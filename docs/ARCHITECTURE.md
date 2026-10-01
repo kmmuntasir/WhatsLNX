@@ -40,15 +40,16 @@ WhatsLNX is an Electron wrapper around [WhatsApp Web](https://web.whatsapp.com).
 
 | File | Role |
 |---|---|
-| `src/main.js` | App lifecycle, BrowserWindow, permissions, downloads, deep links, single instance |
+| `src/main.js` | App lifecycle, BrowserWindow, permissions, downloads, deep links, single instance, offline fallback |
 | `src/preload.js` | Context bridge — exposes `onTitleChange`, `getUnreadCount`, `send` to renderer. Intercepts `Notification` API and Service Worker notifications. Injects font CSS. |
 | `src/notifications.js` | Converts intercepted web notifications into native Electron notifications |
 | `src/tray.js` | System tray icon, unread badge rendering (canvas pixel-font glyphs), context menu, theme toggle |
 | `src/settings.js` | Settings BrowserWindow, theme and font configuration |
 | `src/settings-preload.js` | Context bridge for settings window (`getSystemFonts`, `getSettings`, `setTheme`, `setFonts`) |
 | `src/settings.html` | Settings UI — theme radio buttons, font dropdowns |
+| `src/offline.html` | Local "You're offline" page shown when WhatsApp Web is unreachable; reconnects via the `retry-connection` IPC channel |
 | `src/updater.js` | Auto-update check (4-hour interval), download, install notification |
-| `src/utils.js` | Pure functions — URL parsing, position clamping, permission checking, badge label generation, font CSS generation, navigation validation |
+| `src/utils.js` | Pure functions — URL parsing, position clamping, permission checking, badge label generation, font CSS generation, navigation validation, network-error detection |
 
 ## Security Model
 

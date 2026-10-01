@@ -45,9 +45,10 @@ const { createTray, updateContextMenu } = require('./tray');
 const { showNativeNotification } = require('./notifications');
 
 const { initUpdater } = require('./updater');
-const { parseUnreadCount, isPermissionAllowed, buildDeepLinkUrl, clampPosition: clampPositionUtil, isAllowedNavigation } = require('./utils');
+const { parseUnreadCount, isPermissionAllowed, buildDeepLinkUrl, clampPosition: clampPositionUtil, isAllowedNavigation, isNetworkError } = require('./utils');
 
 const WHATSAPP_URL = 'https://web.whatsapp.com';
+const OFFLINE_PAGE = path.join(__dirname, 'offline.html');
 const CHROMIUM_VERSION = process.versions.chrome || '140.0.0.0';
 const USER_AGENT = `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${CHROMIUM_VERSION} Safari/537.36`;
 
@@ -104,7 +105,7 @@ function handleDeepLink(url) {
   if (!mainWindow) return;
   const waUrl = buildDeepLinkUrl(url);
   if (waUrl) {
-    mainWindow.webContents.loadURL(waUrl);
+    mainWindow.webContents.loadURL(waUrl).catch(() => {});
   }
 }
 
@@ -170,9 +171,11 @@ async function init() {
   });
 
   // --- Download interception: use native save dialog ---
-  session.defaultSession.on('will-download', (event, item) => {
-    event.preventDefault();
-
+  session.defaultSession.on('will-download', (_event, item) => {
+    // NOTE: calling event.preventDefault() here would CANCEL the download
+    // (the item becomes unusable from the next tick). Instead we always
+    // resolve to either a save path or an explicit cancel within this
+    // synchronous handler, which also suppresses Electron's default UI.
     const filePath = dialog.showSaveDialogSync(mainWindow, {
       defaultPath: path.join(app.getPath('downloads'), item.getFilename()),
       title: 'Save File',
@@ -180,7 +183,15 @@ async function init() {
 
     if (filePath) {
       item.setSavePath(filePath);
-      item.resume();
+    } else {
+      item.cancel();
+    }
+  });
+
+  // --- Reconnect requests from the offline page ---
+  ipcMain.on('retry-connection', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.loadURL(WHATSAPP_URL).catch(() => {});
     }
   });
 
@@ -227,7 +238,26 @@ function createMainWindow() {
   // Force user agent on webContents
   mainWindow.webContents.setUserAgent(USER_AGENT);
 
-  mainWindow.loadURL(WHATSAPP_URL);
+  mainWindow.loadURL(WHATSAPP_URL).catch(() => {});
+
+  // --- Offline handling: show a local error page on network failures ---
+  // The AppImage catalog test (and any offline start) must still see content
+  // in the window instead of a blank frame.
+  let lastOfflineLoadAt = 0;
+  const handleLoadFailure = (_event, _errorCode, errorDescription, validatedURL, isMainFrame) => {
+    if (!isMainFrame) return;
+    if (!isNetworkError(errorDescription)) return;
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    // did-fail-load and did-fail-provisional-load can both fire for one
+    // navigation — don't load the offline page twice.
+    const now = Date.now();
+    if (now - lastOfflineLoadAt < 500) return;
+    lastOfflineLoadAt = now;
+    console.log(`[offline] ${errorDescription} while loading ${validatedURL} — showing offline page`);
+    mainWindow.loadFile(OFFLINE_PAGE).catch(() => {});
+  };
+  mainWindow.webContents.on('did-fail-load', handleLoadFailure);
+  mainWindow.webContents.on('did-fail-provisional-load', handleLoadFailure);
 
   // --- Override window title to "WhatsLNX (count)" + update tray badge ---
   mainWindow.on('page-title-updated', (event, title) => {

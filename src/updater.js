@@ -5,7 +5,10 @@ autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = true;
 
 function initUpdater() {
-  autoUpdater.checkForUpdates();
+  // checkForUpdates()/downloadUpdate() rejections are surfaced through the
+  // 'error' event below — swallow the promise rejections to avoid
+  // UnhandledPromiseRejectionWarning noise when offline.
+  autoUpdater.checkForUpdates().catch(() => {});
 
   autoUpdater.on('update-available', (info) => {
     const notification = new Notification({
@@ -14,7 +17,7 @@ function initUpdater() {
       silent: true,
     });
     notification.show();
-    autoUpdater.downloadUpdate();
+    autoUpdater.downloadUpdate().catch(() => {});
   });
 
   autoUpdater.on('update-downloaded', (info) => {
@@ -35,7 +38,7 @@ function initUpdater() {
 
   // Check for updates every 4 hours
   setInterval(() => {
-    autoUpdater.checkForUpdates();
+    autoUpdater.checkForUpdates().catch(() => {});
   }, 4 * 60 * 60 * 1000);
 }
 
